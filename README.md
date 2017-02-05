@@ -13,6 +13,10 @@ This is commanline biological sequence viewer in terminal
 
 Not configured yet. Please wait.
 
+# Usage
+
+Coming soon
+
 # Screenshots
 
 **Normal view**
