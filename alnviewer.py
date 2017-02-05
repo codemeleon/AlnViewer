@@ -31,7 +31,11 @@ def run(alnpath, alntype):
         exit(1)
     if not path.exists(hidden_path):
         makedirs(hidden_path)
-    viewer.show_me_the_alignment(file_list, alntype)
+    if len(file_list):
+        viewer.show_me_the_alignment(file_list, alntype)
+    else:
+        click.echo("No input file found in give folder")
+        exit(1)
 
 if __name__ == '__main__':
     run()

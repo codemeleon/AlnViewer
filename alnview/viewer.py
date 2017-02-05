@@ -66,13 +66,19 @@ def show_me_the_alignment(file_list, alntype):
     color_pair, alternative_color_pair = color_pairs(curses, "normal")
     current_x, current_y = 0, 0  # Left Top
     id_seq_gap = 15
+    key_pressed = 100000
 
     current_file_num = 0
     current_file = file_list[current_file_num]
     original = is_alignment(current_file)
+    if original:
+        aln_file_found = 1
+    else:
+        aln_file_found = 0
+        current_file_num += 1
+        key_pressed = ord('n')
     sequence_ids = list(original.keys())  # If order changes,correct it
     sequence_ids.sort()
-    key_pressed = 100000
     indexes = None
     display_memory = old_status(current_file)
     current_x, current_y = (display_memory['display_x'],
@@ -136,7 +142,7 @@ def show_me_the_alignment(file_list, alntype):
                 display_memory["display_color"] = "normal"
         if key_pressed == ord('n') or key_pressed == ord('p'):
 
-            if key_pressed == ord('n') and current_file_num < len(file_list)-1:
+            if key_pressed == ord('n') and current_file_num < len(file_list) - 1:
                 current_file_num += 1
             elif key_pressed == ord('p') and current_file_num > 0:
                 current_file_num -= 1
@@ -148,9 +154,15 @@ def show_me_the_alignment(file_list, alntype):
             if not original:
                 # Think of terminating program, incase no sequence in given
                 # format
+                # TODO: Fix Here
                 if key_pressed == ord('n'):
                     current_file_num += 1
                 else:
+                    if current_file_num == len(file_list) and not aln_file_found:
+                        break
+                    else:
+                        key_pressed = ord('p')
+                        continue
                     current_file_num -= 1
                 continue
             sequence_ids = list(original.keys())
@@ -631,3 +643,5 @@ def show_me_the_alignment(file_list, alntype):
     screen.keypad(0)
     curses.echo()
     curses.endwin()
+    if not aln_file_found:
+        click.echo("No valid alignment file found")

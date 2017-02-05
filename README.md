@@ -17,6 +17,10 @@ Not configured yet. Please wait.
 
 Coming soon
 
+# Key binding
+
+Coming soon
+
 # Screenshots
 
 **Normal view**
