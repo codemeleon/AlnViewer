@@ -44,14 +44,17 @@ helpdict = OrderedDict([
 
 def is_alignment(alnfile):
     """Check for existance of alignemnt file."""
-    try:
-        alignment = AlignIO.read(open(alnfile), "fasta")
-        sequences = {}
-        # alignment_length = alignment.get_alignment_length()
-        for rec in alignment:
-            sequences[rec.id] = rec.seq  # [:80]
-        return sequences  # alignment_length
-    except:
+    for fltype in ['fasta', 'clustal', 'nexus', 'phylip']:
+        try:
+            alignment = AlignIO.read(open(alnfile), fltype)
+            sequences = {}
+            # alignment_length = alignment.get_alignment_length()
+            for rec in alignment:
+                sequences[rec.id] = rec.seq  # [:80]
+            return sequences  # alignment_length
+        except:
+            continue
+    else:
         return False
 
 
@@ -107,6 +110,17 @@ def show_me_the_alignment(file_list, alntype):
             if max_y < 5 or max_x < 10:
                 key_pressed = screen.getch()
                 continue
+            if ((current_x + max_x - id_seq_gap - 1) >
+                    len(sequences[sequence_ids[0]])):
+                # Horizontal rearrangement
+                current_x = (len(sequences[sequence_ids[0]]) -
+                             (max_x - id_seq_gap - 1))
+            if ((current_y + max_y - vertical_shift - 2) >
+                    len(sequence_ids)):
+                current_y = (len(sequence_ids) -
+                             (max_y - vertical_shift - 2))
+                # Verical Rearrangement
+                pass
         if alntype == "amn":
             if key_pressed == ord("b"):
                 color_pair, alternative_color_pair = color_pairs(curses,
@@ -131,6 +145,14 @@ def show_me_the_alignment(file_list, alntype):
                 continue
             current_file = file_list[current_file_num]
             original = is_alignment(current_file)
+            if not original:
+                # Think of terminating program, incase no sequence in given
+                # format
+                if key_pressed == ord('n'):
+                    current_file_num += 1
+                else:
+                    current_file_num -= 1
+                continue
             sequence_ids = list(original.keys())
             sequences = original.copy()
             sequence_ids.sort()
@@ -433,6 +455,7 @@ def show_me_the_alignment(file_list, alntype):
                 else:
                     current_y = len(sequence_ids) - (max_y - 2 -
                                                      vertical_shift)
+
                     #
 
         #
