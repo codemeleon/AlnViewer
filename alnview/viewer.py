@@ -8,37 +8,38 @@ from .alphabet_colors import color_pairs
 from .alterations import old_status, ref_map, pattern_ranges, trim_map
 from os import path
 from Bio import AlignIO
+from collections import OrderedDict
 
 
 # Some fixed variables
-help = {
-    'a': 'Normal view of amino acids',
-    'b': 'Phobicity based colors',
-    'z': 'Size based colors',
-    'p': 'Previous file',
-    'n': 'Next file',
-    'o': 'Normal alignment',
-    'l': 'Open location box',
-    'f': 'Open pattern search box',
-    'ctrl+up arrow': 'One page up',
-    'ctrl+down arrow': 'One page down',
-    'ctrl+left arrow' : 'One page left',
-    'click on left': 'Previous alignment',
-    'click on right': 'Next alignment',
-    'click on top': 'One line up',
-    'click at bottom': 'One line down',
-    'Click on sequence id': ' Reference based alignment',
-    'ctrl+ rightarrow': 'One page right',
-    't': 'Alignment with mismaches only',
-    'left arrow': '1 positions left',
-    'right arrow': '1 positions right',
-    'left arrow': '1 positions left',
-    'up arrow': '1 positions up',
-    'down arrow': '1 positions down',
-    'End': 'End of alignment',
-    'Home': 'Begining of alignment',
-    '?': 'This help'
-}
+helpdict = OrderedDict([
+    ('b', 'Phobicity based colors'),
+    ('a', 'Normal view of amino acids'),
+    ('z', 'Size based colors'),
+    ('p', 'Previous file'),
+    ('n', 'Next file'),
+    ('o', 'Normal alignment'),
+    ('l', 'Open location box'),
+    ('f', 'Open pattern search box'),
+    ('t', 'Alignment with mismaches only'),
+    ('ctrl+up arrow', 'One page up'),
+    ('ctrl+down arrow', 'One page down'),
+    ('ctrl+left arrow', 'One page left'),
+    ('click on left', 'Previous alignment'),
+    ('click on right', 'Next alignment'),
+    ('click on top', 'One line up'),
+    ('click at bottom', 'One line down'),
+    ('Click on sequence id', ' Reference based alignment'),
+    ('ctrl+ rightarrow', 'One page right'),
+    ('left arrow', '1 positions left'),
+    ('right arrow', '1 positions right'),
+    ('left arrow', '1 positions left'),
+    ('up arrow', '1 positions up'),
+    ('down arrow', '1 positions down'),
+    ('End', 'End of alignment'),
+    ('Home', 'Begining of alignment'),
+    ('?', 'This help')
+])
 
 
 def is_alignment(alnfile):
@@ -69,6 +70,7 @@ def show_me_the_alignment(file_list, alntype):
     sequence_ids = list(original.keys())  # If order changes,correct it
     sequence_ids.sort()
     key_pressed = 100000
+    indexes = None
     display_memory = old_status(current_file)
     current_x, current_y = (display_memory['display_x'],
                             display_memory['display_y'])
@@ -85,6 +87,11 @@ def show_me_the_alignment(file_list, alntype):
     else:
         sequences = original.copy()
         key_pressed = ord('o')
+
+    # Look up
+    helpme = ['%15s: %s' % (k, helpdict[k]) for k in helpdict]
+    helpme_height = len(helpme)
+    helpme_width = max(map(len, helpme))
 
     curses.noecho()
     curses.curs_set(0)
@@ -278,11 +285,38 @@ def show_me_the_alignment(file_list, alntype):
             vertical_shift = max_height - 1
 
         elif key_pressed == ord('?'):
-            while key_pressed == ord('?'):
-                screen.clear()
+            xh, yh = 0, 0
+            while key_pressed != ord('q'):
+                # pressing updown cursor shout alter only internal paramets
+                # Change this part
+                if key_pressed == curses.KEY_RESIZE:
+                    max_y, max_x = screen.getmaxyx()
+                if key_pressed == curses.KEY_DOWN:
+                    if yh + max_y == helpme_height-1:
+                        key_pressed = screen.getch()
+                        continue
+                    yh += 1
+                elif key_pressed == curses.KEY_UP:
+                    if yh == 0:
+                        key_pressed = screen.getch()
+                        continue
+                    yh -= 1
 
-                for i, k in enumerate(help, 1):
-                    screen.addstr(i, 0, '%15s: %s' % (k, help[k]))
+                elif key_pressed == curses.KEY_LEFT:
+                    if xh == 0:
+                        key_pressed = screen.getch()
+                        continue
+                    xh -= 1  # TODO:0 : Optimise it for error handling
+
+                elif key_pressed == curses.KEY_RIGHT:
+                    if xh + max_x == helpme_width or helpme_width <= max_x:
+                        key_pressed = screen.getch()
+                        continue
+                    xh += 1
+                screen.clear()
+                print(helpme)
+                for i, k in enumerate(helpme[yh: yh + max_y-1]):
+                    screen.addstr(i, 0, k[xh: xh + max_x])
                 key_pressed = screen.getch()
             key_pressed = 100000
 
@@ -322,24 +356,28 @@ def show_me_the_alignment(file_list, alntype):
                     else:
                         shift = int(mx - (id_seq_gap + max_x) / 2)
                     current_x += shift
+            # TODO: On increase of widows, try to shift the sequences  on x, y
 
             if mx < 15 and my > 0:
                 if display_memory['display_mode'] == 't':
                     if my < vertical_shift:
                         ref_name = sequence_ids[current_y]
                     else:
-                        ref_name = sequence_ids[current_y + my - vertical_shift - 1]
+                        ref_name = sequence_ids[current_y + my -
+                                                vertical_shift - 1]
                 elif display_memory['display_mode'] == 'r':
                     if my < 2:
                         ref_name = sequence_ids[current_y]
                     else:
-                        ref_name = sequence_ids[current_y + my - 2] # two rows below from top
+                        ref_name = sequence_ids[current_y + my - 2]
+                        # two rows below from top
                 else:
                     ref_name = sequence_ids[current_y + my - 1]
                 sequences, sequence_ids = ref_map(original, ref_name)
                 display_memory['display_mode'] = 'r'
                 display_memory['display_ref'] = ref_name
-                sequence_ids = sequence_ids[1:] # Try to alter in in alterations file
+                sequence_ids = sequence_ids[1:]
+                # Try to alter in in alterations file
                 current_y -= vertical_shift
                 vertical_shift = 1
                 # t = 0
@@ -380,7 +418,8 @@ def show_me_the_alignment(file_list, alntype):
                     current_y -= (max_y - 2 - vertical_shift)
 
         elif key_pressed == 521:  # ctrl+right_down
-            if current_y == len(sequence_ids) - (max_y - 1 - vertical_shift):  # Some size
+            if current_y == len(sequence_ids) - (max_y - 1 - vertical_shift):
+                # Some size
                 key_pressed = screen.getch()
                 continue
             else:
@@ -389,7 +428,8 @@ def show_me_the_alignment(file_list, alntype):
                                                         vertical_shift):
                     current_y += (max_y - 2 - vertical_shift)
                     # TODO: Does reach till end fix it
-                    # print(current_y, len(sequence_ids) - current_y, max_y,"Anmol")
+                    # print(current_y, len(sequence_ids) -
+                    # current_y, max_y,"Anmol")
                 else:
                     current_y = len(sequence_ids) - (max_y - 2 -
                                                      vertical_shift)
@@ -452,43 +492,15 @@ def show_me_the_alignment(file_list, alntype):
         if current_y < 0:
             current_y = 0
 
-
-        # Position of first aligned sequence
-        # if t:
-        #     a = list(map(str, indexes))
-        #     max_num_len = max(map(len, a))
-        #
-        #     a = ["."*(max_num_len-len(n))+n for n in a]
-        #     for i, n in enumerate(a[cursormovement.x:
-        #                             cursormovement.x + max_x - 20]):
-        #         for j, x in enumerate(n):
-        #             screen.addstr(j, i+20, x)
-        # else:
-        #     max_num_len = 0
-        # max_num_len = len(a[0])
-        # if key_pressed == 556:
-        #     screen.addstr(0, 0, str(key_pressed))
-        # else:
-        #     pass
-        # screen.addstr(0, 0, "Idiot "+str(key_pressed))
-
-        # TODO: Calculate upper ranges
-        # Search test =====
-        # if len(sequence_ids) < max_y-2:
-        #     max_y_t = len(sequence_ids)
-        # else:
-        #     max_y_t = max_y
-
-        # Need to reset current_x and current_y with end of x and y
         if current_y + max_y - 2 - vertical_shift > len(sequence_ids):
             y_upto = len(sequence_ids)
         else:
             y_upto = current_y + max_y - 2 - vertical_shift
-        if current_x + max_x - id_seq_gap - 1 > len(sequences[sequence_ids[0]]):
+        if ((current_x + max_x - id_seq_gap - 1) >
+                len(sequences[sequence_ids[0]])):
             x_upto = len(sequences[sequence_ids[0]])
         else:
             x_upto = current_x + max_x - id_seq_gap - 1
-
 
         if display_memory['display_mode'] == 'o':
             # current_y + max_y - 2 should be replace my max of sequence count
@@ -503,9 +515,11 @@ def show_me_the_alignment(file_list, alntype):
                                                 ][current_x:x_upto]):
                     screen.addstr(i + 1, j + id_seq_gap, n, color_pair[n])
                     if i == 0 and (j + current_x) % 10 == 0:
-                        if j + id_seq_gap > max_x - len(str(j+current_x)) -1: # TODO : Pu this code in other parts too
+                        if j + id_seq_gap > max_x - len(str(j+current_x)) - 1:
+                            # TODO : Put this code in other parts too
                             # screen.addstr(i, j + id_seq_gap,
-                            #               "|"+str(j + current_x)[:j + id_seq_gap - max_x +1])
+                            #               "|"+str(j + current_x)[:j +
+                            # id_seq_gap - max_x +1])
                             continue
                         screen.addstr(i, j + id_seq_gap,
                                       "|"+str(j + current_x))
@@ -580,7 +594,7 @@ def show_me_the_alignment(file_list, alntype):
 
                     screen.addstr(i + 2, j + id_seq_gap, n, color_pair[n])
 
-        screen.addstr(max_y - 1, 0, current_file[:max_x])
+        screen.addstr(max_y - 1, 0, current_file[:max_x - 1])
         screen.refresh()
         key_pressed = screen.getch()
         if chr(key_pressed) in 'npq':  # Next, Previous, Quit

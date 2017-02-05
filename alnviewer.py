@@ -8,7 +8,8 @@ from os import path, makedirs
 
 @click.command()
 @click.option("--alnpath", help="Alignment file/folder",
-              type=str, default="aln_fold", show_default=True)
+              type=str, default="../AlnView_bkp/aln_fold",
+              show_default=True)
 @click.option("--alntype", help="nucleotide/Amino Acid",
               type=click.Choice(["nuc", "amn"]),
               default="amn", show_default=True)
