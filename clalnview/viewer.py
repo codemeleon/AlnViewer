@@ -20,6 +20,7 @@ helpdict = OrderedDict([
     ('p', 'Previous file'),
     ('n', 'Next file'),
     ('o', 'Normal alignment'),
+    ('q', 'Exit'),
     ('l', 'Open location box'),
     ('f', 'Open pattern search box'),
     ('t', 'Alignment with mismaches only'),
@@ -374,7 +375,7 @@ def show_me_the_alignment(file_list, hiddenpath, alntype):
                     xh += 1
                 screen.clear()
                 for i, k in enumerate(helpme[yh: yh + max_y]):
-                    screen.addstr(i, 0, k[xh: xh + max_x])
+                    screen.addstr(i, 0, k[xh: xh + max_x - 1])
                 key_pressed = screen.getch()
             key_pressed = 100000
 
