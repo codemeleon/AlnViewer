@@ -11,15 +11,20 @@ This is commanline biological sequence viewer in terminal
 
 # Installation
 
-Not configured yet. Please wait.
+python setup install
 
 # Usage
 
-Coming soon
+clalnview --alnpath
+
+<aln_file|aln_folder> --alntype <amn|nuc>
+</amn|nuc></aln_file|aln_folder>
 
 # Key binding
 
-Coming soon
+Please press "?" inside the program
+
+![Normal View][i6]
 
 # Screenshots
 
@@ -47,8 +52,13 @@ Coming soon
 
 GPLv3
 
+# TODOs
+
+Mostly speed improvements
+
 [i1]: figures/NormalView.png "Normal View"
 [i2]: figures/Reference_based.png "Reference View"
 [i3]: figures/Mismaches.png "Mismatch View"
 [i4]: figures/Genomic_Location.png "Genomic Location Search"
 [i5]: figures/Pattern.png "Pattern Search"
+[i6]: figures/Options.png "Options Page"
