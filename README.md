@@ -1,6 +1,11 @@
-# What is it??
+# About
 
-This is commanline biological sequence viewer in terminal
+AlnViewer is a simple interactive command-line key binding based viewer to display pre-processed multiple sequence alignments. Alnviewer can be used locally or over remote login to visualize one or multiple alignments without leaving the command-line user interface.
+
+A desire to be able to able to visualise large multiple sequence alignments, stored on a remote host, without the need to leave the command line, initiated the design of the program. 
+
+The program is being developed by the MiDEP group at the [Malawi Liverpool Wellcome Trust Clinical Resesearh Programme](http://www.mlw.medcol.mw/index.php/microbial-ecology.html), as part of the activities of the [H3ABionet Consortium](http://www.h3abionet.org/). 
+
 
 # Dependecies
 
@@ -15,7 +20,7 @@ python setup install
 
 # Usage
 
-clalnview --alnpath
+alnviewer --alnpath
 
 <aln_file|aln_folder> --alntype <amn|nuc>
 </amn|nuc></aln_file|aln_folder>
