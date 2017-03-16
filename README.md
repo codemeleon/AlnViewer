@@ -59,7 +59,8 @@ GPLv3
 
 # TODOs
 
-Mostly speed improvements
+- [ ] Mostly speed improvements
+- [ ] add option to mark file to copy in different folder
 
 [i1]: figures/NormalView.png "Normal View"
 [i2]: figures/Reference_based.png "Reference View"
