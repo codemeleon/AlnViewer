@@ -44,6 +44,11 @@ helpdict = OrderedDict([
 ])
 
 
+def thedisplay():
+    pass
+
+
+
 def is_alignment(alnfile):
     """Check for existance of alignemnt file."""
     for fltype in ['fasta', 'clustal', 'nexus', 'phylip']:
@@ -378,6 +383,7 @@ def show_me_the_alignment(file_list, hiddenpath, alntype):
                     screen.addstr(i, 0, k[xh: xh + max_x - 1])
                 key_pressed = screen.getch()
             key_pressed = 100000
+        # elif key_pressed == curses.KEY_MOUSE +
 
         elif key_pressed == curses.KEY_MOUSE:
 
