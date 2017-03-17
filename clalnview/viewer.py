@@ -10,6 +10,7 @@ from .alterations import old_status, ref_map, pattern_ranges, trim_map
 from os import path
 from Bio import AlignIO
 from collections import OrderedDict
+from functools import partial
 
 
 # Some fixed variables
@@ -44,8 +45,41 @@ helpdict = OrderedDict([
 ])
 
 
-def thedisplay():
+# Screen control
+def screen_start():
+    """Start screen."""
+    screen = curses.initscr()
+    curses.start_color()
+    curses.use_default_colors()
+    curses.noecho()
+    curses.curs_set(0)
+    screen.keypad(1)
+    curses.mousemask(1)
+    curses.cbreak()
+    return screen
+
+
+def screen_end():
+    """End screen."""
+    curses.nocbreak()
+    screen.keypad(0)
+    curses.echo()
+    curses.endwin()
+    return
+
+
+def screen_display(screen, displaytype, sequences, curren_x, current_y, max_x,
+               max_y):
+    """Display alignment of sequences."""
+    # This need to return some signal that it is done here
     pass
+
+
+def mini_screen_display(text,pso_x, pos_y):
+    """Display mini input boxes."""
+    # File input name should come here
+    pass
+    return  # something
 
 
 
