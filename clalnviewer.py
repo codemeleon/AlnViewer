@@ -13,7 +13,10 @@ from os import path, makedirs
 @click.option("--alntype", help="nucleotide/Amino Acid",
               type=click.Choice(["nuc", "amn"]),
               default="amn", show_default=True)
-def run(alnpath, alntype):
+@click.option("--undocount", help="Number of recoorections",
+              type=int,
+              default=20, show_default=True)
+def run(alnpath, alntype, undocount):
     """Commandline Sequence alignemnt viewer."""
     """Please prefer to use it in full screen mode."""
     if not alnpath or not path.exists(alnpath):
@@ -32,7 +35,8 @@ def run(alnpath, alntype):
     if not path.exists(hidden_path):
         makedirs(hidden_path)
     if len(file_list):
-        viewer.show_me_the_alignment(file_list, hidden_path, alntype)
+        viewer.show_me_the_alignment(file_list, hidden_path,
+                                     alntype, undocount)
     else:
         click.echo("No input file found in give folder")
         exit(1)
