@@ -168,7 +168,7 @@ def is_alignment(alnfile):
         return False
 
 
-def show_me_the_alignment(file_list, hiddenpath, alntype):
+def show_me_the_alignment(file_list, hiddenpath, alntype, undocount):
     """Main display function."""
     screen = screen_start()
     color_pair, alternative_color_pair = color_pairs(curses, "normal")
@@ -224,6 +224,7 @@ def show_me_the_alignment(file_list, hiddenpath, alntype):
     vertical_shift = 0
     undo_changes = []  # older changes
     redo_changes = []  # newer changes
+    the_change_count = 0
     while key_pressed != ord('q'):
         # Handeling Resize of screen
         if key_pressed == curses.KEY_RESIZE:
@@ -269,6 +270,7 @@ def show_me_the_alignment(file_list, hiddenpath, alntype):
             else:
                 key_pressed = screen.getch()
                 continue
+            the_change_count = 0
             current_file = file_list[current_file_num]
             original = is_alignment(current_file)
             if not original:
@@ -463,6 +465,8 @@ def show_me_the_alignment(file_list, hiddenpath, alntype):
                                             sequences[k][:i_idx]
                         else:
                             sequences[k] += '-'
+                    undo_changes.append(sequences)
+                    the_change_count += 1
 
         elif key_pressed == ord('d'):
             if display_memory['display_mode'] != 'o':
@@ -486,6 +490,8 @@ def show_me_the_alignment(file_list, hiddenpath, alntype):
                                 sequences[k][i_idx + 1:]
                         else:
                             sequences[k] = sequences[k][:-1]
+                undo_changes.append(sequences)
+                the_change_count += 1
         elif key_pressed == ord('D'):
             if display_memory['display_mode'] != 'o':
                 continue
@@ -505,6 +511,18 @@ def show_me_the_alignment(file_list, hiddenpath, alntype):
                     for k in sequences:
                         sequences[k] = sequences[k][:i_idx] +\
                                 sequences[k][i_idx + 1:]
+            undo_changes.append(sequences)
+            the_change_count += 1
+        elif key_pressed == 21:  # ctrl +u
+            if undo_changes:
+                redo_changes.append(sequences)
+                sequences = undo_changes.pop()
+                the_change_count -= 1
+        elif key_pressed == 18:  # ctrl +r
+            if redo_changes:
+                undo_changes.append(sequences)
+                sequences = redo_changes.pop()
+                the_change_count += 1
 
         elif key_pressed == ord('t'):
             display_memory['display_mode'] = 't'
