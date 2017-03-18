@@ -109,7 +109,7 @@ def screen_display(screen, display_mode,
                                   n, color_pair[n])
         else:
             for i, s in enumerate(range(current_y, y_upto)):
-                screen.addstr(i + 1, 1, sequence_ids[s][:])
+                screen.addstr(i + 1, 1, sequence_ids[s][:id_width])
                 for pos, n in enumerate(sequences[sequence_ids[s]
                                                   ][current_x: x_upto]):
                     fount = False
@@ -124,14 +124,12 @@ def screen_display(screen, display_mode,
 
     elif display_mode == 't':
         for i, n in enumerate(indexes[current_x: x_upto]):
-
             for pos, x in enumerate(n):
                 screen.addstr(pos, i + id_seq_gap, x)
         for i, s in enumerate(range(current_y, y_upto),
                               max_height):
-
-            screen.addstr(i, 1, sequence_ids[s])
-            for j, n in enumerate(sequences[sequence_ids[s]
+            screen.addstr(i, 1, sequence_ids[s][:id_width])
+            for pos, n in enumerate(sequences[sequence_ids[s]
                                             ][current_x: x_upto]):
                 screen.addstr(i, pos + id_seq_gap, n, color_pair[n])
 
@@ -458,15 +456,25 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount):
                         # TODO: This need to be fixed for small number of
                         # samples
                         continue
+                    i_idx = mx - id_seq_gap
                     selected_seq = sequence_ids[current_y + my - 1]
                     for k in sequences:
                         if k == selected_seq:
-                            sequences[k] = sequences[k][:i_idx] + '-' +\
-                                            sequences[k][:i_idx]
+                            sequences[k] = (sequences[k][:current_x + i_idx] +
+                                            '-' +
+                                            sequences[k][current_x + i_idx:])
                         else:
                             sequences[k] += '-'
                     undo_changes.append(sequences)
                     the_change_count += 1
+                    screen_display(screen, display_memory['display_mode'],
+                                   sequences, sequence_ids, ref_name,
+                                   current_x, current_y, max_x, max_y, y_upto,
+                                   x_upto, id_seq_gap, max_height,
+                                   color_pair, alternative_color_pair,
+                                   pattern_positions, indexes,
+                                   current_file
+                                   )
 
         elif key_pressed == ord('d'):
             if display_memory['display_mode'] != 'o':
@@ -484,14 +492,24 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount):
                         # samples
                         continue
                     selected_seq = sequence_ids[current_y + my - 1]
+                    i_idx = mx - id_seq_gap
                     for k in sequences:
                         if k == selected_seq:
-                            sequences[k] = sequences[k][:i_idx] +\
-                                sequences[k][i_idx + 1:]
+                            sequences[k] = (sequences[k][:current_x + i_idx] +
+                                            sequences[k][current_x + i_idx + 1:
+                                                         ])
                         else:
                             sequences[k] = sequences[k][:-1]
-                undo_changes.append(sequences)
-                the_change_count += 1
+                    undo_changes.append(sequences)
+                    the_change_count += 1
+                    screen_display(screen, display_memory['display_mode'],
+                                   sequences, sequence_ids, ref_name,
+                                   current_x, current_y, max_x, max_y, y_upto,
+                                   x_upto, id_seq_gap, max_height,
+                                   color_pair, alternative_color_pair,
+                                   pattern_positions, indexes,
+                                   current_file
+                                   )
         elif key_pressed == ord('D'):
             if display_memory['display_mode'] != 'o':
                 continue
@@ -508,11 +526,20 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount):
                         # samples
                         continue
                     selected_seq = sequence_ids[current_y + my - 1]
+                    i_idx = mx - id_seq_gap
                     for k in sequences:
-                        sequences[k] = sequences[k][:i_idx] +\
-                                sequences[k][i_idx + 1:]
-            undo_changes.append(sequences)
-            the_change_count += 1
+                        sequences[k] = (sequences[k][:current_x + i_idx] +
+                                        sequences[k][current_x + i_idx + 1:])
+                undo_changes.append(sequences)
+                the_change_count += 1
+                screen_display(screen, display_memory['display_mode'],
+                               sequences, sequence_ids, ref_name,
+                               current_x, current_y, max_x, max_y, y_upto,
+                               x_upto, id_seq_gap, max_height,
+                               color_pair, alternative_color_pair,
+                               pattern_positions, indexes,
+                               current_file
+                               )
         elif key_pressed == 21:  # ctrl +u
             if undo_changes:
                 redo_changes.append(sequences)
@@ -726,65 +753,6 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount):
                        pattern_positions, indexes,
                        current_file
                        )
-        # if display_memory['display_mode'] == 'o':
-        #     for i, s in enumerate(range(current_y, y_upto)):
-        #         screen.addstr(i + 1, 1, sequence_ids[s])
-        #         for j, n in enumerate(sequences[sequence_ids[s]
-        #                                         ][current_x:x_upto]):
-        #             screen.addstr(i + 1, j + id_seq_gap, n, color_pair[n])
-        #             if i == 0 and (j + current_x) % 10 == 0:
-        #                 if j + id_seq_gap > max_x - len(str(j+current_x)) - 1:
-        #                     continue
-        #                 screen.addstr(i, j + id_seq_gap,
-        #                               "|"+str(j + current_x))
-        #
-        # elif display_memory['display_mode'] == 'f':
-        #     for i, s in enumerate(range(current_y, y_upto)):
-        #         screen.addstr(i+1, 1, sequence_ids[s])
-        #         for j, n in enumerate(sequences[sequence_ids[s]
-        #                                         ][current_x:x_upto]):
-        #             if i == 0 and (j+current_x) % 10 == 0:
-        #                     screen.addstr(i, j + id_seq_gap,
-        #                                   "|"+str(j + current_x))
-        #             found = 0
-        #             for rng in pattern_positions[sequence_ids[s]]:
-        #                 if rng[0] <= current_x + j < rng[1]:
-        #                     found = 1
-        #                     screen.addstr(i + 1, j + id_seq_gap, n,
-        #                                   alternative_color_pair[n])
-        #             if not found:
-        #                 screen.addstr(i + 1, j + id_seq_gap,
-        #                               n, color_pair[n])
-        #
-        # elif display_memory['display_mode'] == 't':
-        #     for i, n in enumerate(indexes[current_x: x_upto]):
-        #
-        #         for j, x in enumerate(n):
-        #             screen.addstr(j, i + id_seq_gap, x)
-        #     for i, s in enumerate(range(current_y, y_upto),
-        #                           max_height):
-        #
-        #         screen.addstr(i, 1, sequence_ids[s])
-        #         for j, n in enumerate(sequences[sequence_ids[s]
-        #                                         ][current_x: x_upto]):
-        #             screen.addstr(i, j + id_seq_gap, n, color_pair[n])
-        #
-        # elif display_memory['display_mode'] == 'r':
-        #     screen.addstr(1, 1, ref_name)
-        #     for j, n in enumerate(sequences[ref_name][current_x: x_upto]):
-        #         if (j+current_x) % 10 == 0:
-        #             screen.addstr(0, j+id_seq_gap, "|"+str(j + current_x))
-        #         screen.addstr(1, j+id_seq_gap, n, color_pair[n])
-        #     for i, s in enumerate(range(current_y, y_upto)):
-        #         screen.addstr(i + 2, 1, sequence_ids[s])
-        #
-        #         for j, n in enumerate(sequences[sequence_ids[s]
-        #                                         ][current_x: x_upto]):
-        #
-        #             screen.addstr(i + 2, j + id_seq_gap, n, color_pair[n])
-        #
-        # screen.addstr(max_y - 1, 0, current_file[:max_x - 1])
-        # screen.refresh()
         key_pressed = screen.getch()
         if chr(key_pressed) in 'npq':  # Next, Previous, Quit
             if display_memory['display_mode'] == 'f':
