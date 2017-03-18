@@ -59,7 +59,7 @@ def screen_start():
     return screen
 
 
-def screen_end():
+def screen_end(screen):
     """End screen."""
     curses.nocbreak()
     screen.keypad(0)
@@ -68,19 +68,83 @@ def screen_end():
     return
 
 
-def screen_display(screen, displaytype, sequences, curren_x, current_y, max_x,
-               max_y):
+def history():
+    """Keep information of earlier opened files."""
+    return
+
+
+def screen_display(screen, display_mode, sequences, current_x, current_y,
+                   max_x, max_y, y_upto, x_upto, id_seq_gap, ref_name,
+                   color_pair, sequence_ids, pattern_positions=None,
+                   alternative_color_pair=None, indexes=None, current_file,
+                   max_height):
     """Display alignment of sequences."""
-    # This need to return some signal that it is done here
-    pass
+    if display_mode in ['o', 'f', 'r']:
+        for pos in range(current_x, x_upto):
+            if pos % 10 == 0:
+                if (pos + id_seq_gap) > (max_x -
+                                         len(str(pos + current_x)) - 1):
+                    # screen.addstr(0, pos + id_seq_gap,
+                    #               "|" + str(pos + current_x))
+                    continue
+                screen.addstr(0, pos + id_seq_gap, "|" + str(pos + current_x))
+
+        v_shift = 1
+        if display_mode == 'r':
+            screen.addstr(1, 1, ref_name)
+            for j, n in enumerate(sequences[ref_name][current_x: x_upto]):
+                screen.addstr(1, pos+id_seq_gap, n, color_pair[n])
+            display_mode = 'o'
+            v_shift = 2
+        if display_mode == 'o':
+            for i, s in enumerate(range(current_y, y_upto)):
+                screen.addstr(i + 1, 1, sequence_ids[s])
+                for pos, n in enumerate(sequences[sequence_ids[s]
+                                                  ][current_x: x_upto]):
+                    screen.addstr(i + v_shift, pos + id_seq_gap,
+                                  n, color_pair[n])
+        else:
+            for i, s in enumerate(range(current_y, y_upto)):
+                screen.addstr(i + 1, 1, sequence_ids[s])
+                for pos, n in enumerate(sequences[sequence_ids[s]
+                                                  ][current_x: x_upto]):
+                    fount = False
+                    for rng in pattern_positions[sequence_ids[s]]:
+                        if rng[0] <= current_x + pos < rng[1]:
+                            found = True
+                            screen.addstr(i + 1, pos + id_seq_gap, n,
+                                          alternative_color_pair[n])
+                    if not found:
+                        screen.addstr(i + 1, pos + id_seq_gap,
+                                      n, color_pair[n])
+
+    elif display_mode == 't':
+        for i, n in enumerate(indexes[current_x: x_upto]):
+
+            for pos, x in enumerate(n):
+                screen.addstr(pos, i + id_seq_gap, x)
+        for i, s in enumerate(range(current_y, y_upto),
+                              max_height):
+
+            screen.addstr(i, 1, sequence_ids[s])
+            for j, n in enumerate(sequences[sequence_ids[s]
+                                            ][current_x: x_upto]):
+                screen.addstr(i, pos + id_seq_gap, n, color_pair[n])
+
+    screen.addstr(max_y - 1, 0, current_file[:max_x - 1])
+    screen.refresh()
 
 
-def mini_screen_display(text,pso_x, pos_y):
+def input_screen_display(text, pos_x, pos_y):
     """Display mini input boxes."""
     # File input name should come here
     pass
     return  # something
 
+
+def notice_display():
+    """Display notice from given list of text."""
+    return
 
 
 def is_alignment(alnfile):
@@ -93,7 +157,7 @@ def is_alignment(alnfile):
             for rec in alignment:
                 sequences[rec.id] = rec.seq  # [:80]
             return sequences  # alignment_length
-        except:
+        except IOError:
             continue
     else:
         return False
@@ -101,9 +165,7 @@ def is_alignment(alnfile):
 
 def show_me_the_alignment(file_list, hiddenpath, alntype):
     """Main display function."""
-    screen = curses.initscr()
-    curses.start_color()
-    curses.use_default_colors()
+    screen = screen_start()
     color_pair, alternative_color_pair = color_pairs(curses, "normal")
     current_x, current_y = 0, 0  # Left Top
     id_seq_gap = 15
@@ -115,7 +177,7 @@ def show_me_the_alignment(file_list, hiddenpath, alntype):
                                read())
         if current_file_num > len(file_list):
             current_file_num = 0
-    except:
+    except IOError:
         pass
     current_file = file_list[current_file_num]
     original = is_alignment(current_file)
@@ -148,19 +210,14 @@ def show_me_the_alignment(file_list, hiddenpath, alntype):
     else:
         key_pressed = ord('n')
 
-
     # Look up
     helpme = ['%15s: %s' % (k, helpdict[k]) for k in helpdict]
     helpme_height = len(helpme)
     helpme_width = max(map(len, helpme))
-
-    curses.noecho()
-    curses.curs_set(0)
-    screen.keypad(1)
-    curses.mousemask(1)
-    curses.cbreak()
     max_y, max_x = screen.getmaxyx()
     vertical_shift = 0
+    undo_changes = []  # older changes
+    redo_changes = []  # newer changes
     while key_pressed != ord('q'):
         # Handeling Resize of screen
         if key_pressed == curses.KEY_RESIZE:
@@ -277,7 +334,7 @@ def show_me_the_alignment(file_list, hiddenpath, alntype):
             try:
                 int(chr(char))
                 val_str += chr(char)
-            except:
+            except ValueError:
                 if char == 127:
                     if len(val_str) > 0:
                         val_str = val_str[:-1]
@@ -295,7 +352,7 @@ def show_me_the_alignment(file_list, hiddenpath, alntype):
                     try:
                         int(chr(char))
                         val_str += chr(char)
-                    except:
+                    except ValueError:
                         if char == 127:
                             if len(val_str) > 0:
                                 val_str = val_str[:-1]
@@ -635,13 +692,10 @@ def show_me_the_alignment(file_list, hiddenpath, alntype):
             hidden_path = "%s/.alnview/%s" % (hidden_path[0], hidden_path[1])
             pickle.dump(display_memory, open(hidden_path, "wb"))
             if aln_file_found:
-                with open("%s/current_file_number" % hiddenpath,"w") as cfn:
+                with open("%s/current_file_number" % hiddenpath, "w") as cfn:
                     cfn.write("%d" % current_file_num)
 
-    curses.nocbreak()
-    screen.keypad(0)
-    curses.echo()
-    curses.endwin()
+    screen_end(screen)
     if not aln_file_found:
         click.echo("No valid alignment in supported"
                    " file format found. Exiting")
