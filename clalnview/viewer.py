@@ -24,6 +24,11 @@ helpdict = OrderedDict([
     ('l', 'Open location box'),
     ('f', 'Open pattern search box'),
     ('t', 'Alignment with mismaches only'),
+    ('i', 'Gap insert mode'),
+    ('d', 'Delete mode'),
+    ('D', 'Column delete mode'),
+    ('ctrl+u', 'Undo Chnages'),
+    ('ctrl+r', 'Redo Chnages'),
     ('ctrl+up arrow', 'One page up'),
     ('ctrl+down arrow', 'One page down'),
     ('ctrl+left arrow', 'One page left'),
@@ -64,11 +69,6 @@ def screen_end(screen):
     screen.keypad(0)
     curses.echo()
     curses.endwin()
-    return
-
-
-def history():
-    """Keep information of earlier opened files."""
     return
 
 
@@ -130,7 +130,7 @@ def screen_display(screen, display_mode,
                               max_height):
             screen.addstr(i, 1, sequence_ids[s][:id_width])
             for pos, n in enumerate(sequences[sequence_ids[s]
-                                            ][current_x: x_upto]):
+                                              ][current_x: x_upto]):
                 screen.addstr(i, pos + id_seq_gap, n, color_pair[n])
 
     screen.addstr(max_y - 1, 0, current_file[:max_x - 1])
@@ -143,6 +143,7 @@ def search_box_refresh(search_box, message):
     search_box.box()
     search_box.addstr(1, 1, message)
     search_box.refresh()
+
 
 def input_screen_display(screen, text, typ, pos_x, pos_y, height, width):
     """Display mini input boxes."""
@@ -176,7 +177,7 @@ def input_screen_display(screen, text, typ, pos_x, pos_y, height, width):
         while char != 27:  # Escape Key Value
             char_chr = chr(char)
             if char == 10:  # Enter Key Value
-                new_val =  val_str
+                new_val = val_str
                 break
             else:
                 if char_chr.isalpha():
@@ -193,9 +194,43 @@ def input_screen_display(screen, text, typ, pos_x, pos_y, height, width):
     return new_val
 
 
-def notice_display():
+def notice_display(screen, message):
     """Display notice from given list of text."""
-    return
+    # messages must be an ordered list
+    xh, yh = 0, 0
+    max_y, max_x = screen.getmaxyx()
+    message_height = len(message)
+    message_width = max(map(len, message))
+    key_pressed = -1
+    while key_pressed != 27:  # Escape key
+        if key_pressed == curses.KEY_RESIZE:
+            max_y, max_x = screen.getmaxyx()
+        if key_pressed == curses.KEY_DOWN:
+            if yh + max_y == message_height-1:
+                key_pressed = screen.getch()
+                continue
+            yh += 1
+        elif key_pressed == curses.KEY_UP:
+            if yh == 0:
+                key_pressed = screen.getch()
+                continue
+            yh -= 1
+
+        elif key_pressed == curses.KEY_LEFT:
+            if xh == 0:
+                key_pressed = screen.getch()
+                continue
+            xh -= 1
+
+        elif key_pressed == curses.KEY_RIGHT:
+            if xh + max_x == message_width or message_width <= max_x:
+                key_pressed = screen.getch()
+                continue
+            xh += 1
+        screen.clear()
+        for i, k in enumerate(message[yh: yh + max_y]):
+            screen.addstr(i, 0, k[xh: xh + max_x - 1])
+        key_pressed = screen.getch()
 
 
 def is_alignment(alnfile):
@@ -265,13 +300,12 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount, modified):
 
     # Look up
     helpme = ['%15s: %s' % (k, helpdict[k]) for k in helpdict]
-    helpme_height = len(helpme)
-    helpme_width = max(map(len, helpme))
     max_y, max_x = screen.getmaxyx()
     vertical_shift = 0
     undo_changes = []  # older changes
     redo_changes = []  # newer changes
     the_change_count = 0
+    y_upto, x_upto = 0, 0
     while key_pressed != ord('q'):
         # Handeling Resize of screen
         if key_pressed == curses.KEY_RESIZE:
@@ -403,9 +437,9 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount, modified):
             """Pattern search."""
             ###
             pat = input_screen_display(screen, "Pattern:", str,
-                                         int(max_x / 2) - 30,
-                                         int(max_y / 2),
-                                         3, 50)
+                                       int(max_x / 2) - 30,
+                                       int(max_y / 2),
+                                       3, 50)
             if len(pat) == 0:
                 key_pressed = 100000
                 continue
@@ -436,7 +470,7 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount, modified):
                 key_pressed = screen.getch()
                 if key_pressed == curses.KEY_MOUSE:
                     _, mx, my, _, _ = curses.getmouse()
-                    if my in [0, max_y - 1] :
+                    if my in [0, max_y - 1]:
                         # TODO: This need to be fixed for small number of
                         # samples
                         continue
@@ -472,7 +506,7 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount, modified):
                 key_pressed = screen.getch()
                 if key_pressed == curses.KEY_MOUSE:
                     _, mx, my, _, _ = curses.getmouse()
-                    if my in [0, max_y - 1] :
+                    if my in [0, max_y - 1]:
                         # TODO: This need to be fixed for small number of
                         # samples
                         continue
@@ -507,7 +541,7 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount, modified):
                 key_pressed = screen.getch()
                 if key_pressed == curses.KEY_MOUSE:
                     _, mx, my, _, _ = curses.getmouse()
-                    if my in [0, max_y - 1] :
+                    if my in [0, max_y - 1]:
                         # TODO: This need to be fixed for small number of
                         # samples
                         continue
@@ -558,38 +592,8 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount, modified):
             ref_name, pattern_positions = [None] * 2
 
         elif key_pressed == ord('?'):
-            xh, yh = 0, 0
-            while key_pressed != ord('q'):
-                if key_pressed == curses.KEY_RESIZE:
-                    max_y, max_x = screen.getmaxyx()
-                if key_pressed == curses.KEY_DOWN:
-                    if yh + max_y == helpme_height-1:
-                        key_pressed = screen.getch()
-                        continue
-                    yh += 1
-                elif key_pressed == curses.KEY_UP:
-                    if yh == 0:
-                        key_pressed = screen.getch()
-                        continue
-                    yh -= 1
-
-                elif key_pressed == curses.KEY_LEFT:
-                    if xh == 0:
-                        key_pressed = screen.getch()
-                        continue
-                    xh -= 1
-
-                elif key_pressed == curses.KEY_RIGHT:
-                    if xh + max_x == helpme_width or helpme_width <= max_x:
-                        key_pressed = screen.getch()
-                        continue
-                    xh += 1
-                screen.clear()
-                for i, k in enumerate(helpme[yh: yh + max_y]):
-                    screen.addstr(i, 0, k[xh: xh + max_x - 1])
-                key_pressed = screen.getch()
-            key_pressed = 100000
-        # elif key_pressed == curses.KEY_MOUSE +
+            notice_display(screen, helpme)
+            max_y, max_x = screen.getmaxyx()
 
         elif key_pressed == curses.KEY_MOUSE:
 
@@ -738,7 +742,6 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount, modified):
         else:
             x_upto = current_x + max_x - id_seq_gap - 1
 
-        # print(screen, display_memory['display_mode'])
         screen_display(screen, display_memory['display_mode'],
                        sequences, sequence_ids, ref_name,
                        current_x, current_y, max_x, max_y, y_upto, x_upto,
@@ -748,7 +751,6 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount, modified):
                        current_file
                        )
         key_pressed = screen.getch()
-        screen.addstr(0,0, modified + " Anmol")
         if chr(key_pressed) in 'npq':  # Next, Previous, Quit
             if display_memory['display_mode'] == 'f':
                 display_memory['display_mode'] == 'o'
