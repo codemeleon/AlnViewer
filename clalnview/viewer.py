@@ -7,10 +7,9 @@ import click
 import pickle
 from .alphabet_colors import color_pairs
 from .alterations import old_status, ref_map, pattern_ranges, trim_map
-from os import path
+from os import path, makedirs
 from Bio import AlignIO
 from collections import OrderedDict
-from functools import partial
 
 
 # Some fixed variables
@@ -83,6 +82,7 @@ def screen_display(screen, display_mode,
                    ):
     """Display alignment of sequences."""
     id_width = id_seq_gap - 5
+    screen.clear()
     if display_mode in ['o', 'f', 'r']:
         for i, pos in enumerate(range(current_x, x_upto)):
             if pos % 10 == 0:
@@ -112,7 +112,7 @@ def screen_display(screen, display_mode,
                 screen.addstr(i + 1, 1, sequence_ids[s][:id_width])
                 for pos, n in enumerate(sequences[sequence_ids[s]
                                                   ][current_x: x_upto]):
-                    fount = False
+                    found = False
                     for rng in pattern_positions[sequence_ids[s]]:
                         if rng[0] <= current_x + pos < rng[1]:
                             found = True
@@ -137,11 +137,60 @@ def screen_display(screen, display_mode,
     screen.refresh()
 
 
-def input_screen_display(text, pos_x, pos_y):
+def search_box_refresh(search_box, message):
+    """Update view."""
+    search_box.clear()
+    search_box.box()
+    search_box.addstr(1, 1, message)
+    search_box.refresh()
+
+def input_screen_display(screen, text, typ, pos_x, pos_y, height, width):
     """Display mini input boxes."""
-    # File input name should come here
-    pass
-    return  # something
+    search_box = screen.subwin(height, width, pos_y, pos_x)
+    search_box.clear()
+    search_box.box()
+    in_str = "GoTo:"
+    val_str = ""
+    search_box.addstr(1, 1, in_str)
+    search_box.refresh()
+    curses.echo()
+    char = search_box.getch()
+    if typ == int:
+        while char != 27:  # Escape Key Value
+            if char == 10:  # Enter Key Value
+                new_val = int(val_str)
+                break
+            else:
+                try:
+                    int(chr(char))
+                    val_str += chr(char)
+                except ValueError:
+                    if char == 127 and len(val_str):  # 127: backspace Key
+                        val_str = val_str[:-1]
+                search_box_refresh(search_box, in_str+val_str)
+                char = search_box.getch()
+        if char == 27:
+            new_val = -1
+
+    elif typ == str:
+        while char != 27:  # Escape Key Value
+            char_chr = chr(char)
+            if char == 10:  # Enter Key Value
+                new_val =  val_str
+                break
+            else:
+                if char_chr.isalpha():
+                    val_str += char_chr.upper()
+                else:
+                    if char == 127:
+                        if len(val_str) > 0:
+                            val_str = val_str[:-1]
+                search_box_refresh(search_box, in_str+val_str)
+                char = search_box.getch()
+
+    search_box.clear()
+    curses.noecho()
+    return new_val
 
 
 def notice_display():
@@ -166,7 +215,7 @@ def is_alignment(alnfile):
         return False
 
 
-def show_me_the_alignment(file_list, hiddenpath, alntype, undocount):
+def show_me_the_alignment(file_list, hiddenpath, alntype, undocount, modified):
     """Main display function."""
     screen = screen_start()
     color_pair, alternative_color_pair = color_pairs(curses, "normal")
@@ -328,46 +377,13 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount):
                 vertical_shift = 1
 
         elif key_pressed == ord('l') and display_memory['display_mode'] != 't':
-            search_box = screen.subwin(3, 30, int(max_y / 2), int(max_x / 2) -
-                                       30)
-            search_box.clear()
-            search_box.box()
-            in_str = "GoTo:"
-            val_str = ""
-            search_box.addstr(1, 1, in_str)
-            search_box.refresh()
-            curses.echo()
-            char = search_box.getch()
-            try:
-                int(chr(char))
-                val_str += chr(char)
-            except ValueError:
-                if char == 127:
-                    if len(val_str) > 0:
-                        val_str = val_str[:-1]
-
-            while char != 27:  # Escape Key Value
-                if char == 10:  # Enter Key Value
-                    new_x = int(val_str)
-                    break
-                else:
-                    search_box.clear()
-                    search_box.box()
-                    search_box.addstr(1, 1, in_str+val_str)
-                    search_box.refresh()
-                    char = search_box.getch()
-                    try:
-                        int(chr(char))
-                        val_str += chr(char)
-                    except ValueError:
-                        if char == 127:
-                            if len(val_str) > 0:
-                                val_str = val_str[:-1]
-            if char == 27:
+            """Move to new location."""
+            new_x = input_screen_display(screen, "GoTo:", int,
+                                         int(max_x / 2) - 30,
+                                         int(max_y / 2),
+                                         3, 30)
+            if new_x == -1:
                 new_x = current_x + (max_x-id_seq_gap)/2
-
-            search_box.clear()
-            curses.noecho()
 
             if max_x - id_seq_gap >= len(sequences[sequence_ids[0]]):
                 pass
@@ -384,48 +400,20 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount):
         elif (key_pressed == ord('f') and
               (display_memory['display_mode'] == 'o' or
                display_memory['display_mode'] == 'f')):
+            """Pattern search."""
             ###
-            search_box = screen.subwin(3, 50, int(max_y / 2), int(max_x / 2) -
-                                       30)
-            search_box.clear()
-            search_box.box()
-            in_str = "Pattern:"
-            val_str = ""
-            search_box.addstr(1, 1, in_str)
-            search_box.refresh()
-            curses.echo()
-            char = search_box.getch()
-            char_chr = chr(char)
-            if char_chr.isalpha():
-                val_str += char_chr.upper()
-
-            while char != 27:  # Escape Key Value
-                if char == 10:  # Enter Key Value
-                    break
-                else:
-                    search_box.clear()
-                    search_box.box()
-                    search_box.addstr(1, 1, in_str+val_str)
-                    search_box.refresh()
-                    char = search_box.getch()
-                    char_chr = chr(char)
-                    if char_chr.isalpha():
-                        val_str += char_chr.upper()
-                    else:
-                        if char == 127:
-                            if len(val_str) > 0:
-                                val_str = val_str[:-1]
-
-            search_box.clear()
-            curses.noecho()
-            if char == 27 or len(val_str) == 0:
+            pat = input_screen_display(screen, "Pattern:", str,
+                                         int(max_x / 2) - 30,
+                                         int(max_y / 2),
+                                         3, 50)
+            if len(pat) == 0:
                 key_pressed = 100000
                 continue
             display_memory['display_mode'] = 'f'
             current_y -= vertical_shift
             vertical_shift = 0
             pattern_positions, search_movement = pattern_ranges(original,
-                                                                val_str)
+                                                                pat)
             indexes, max_height = [None] * 2
         #
         elif key_pressed == ord('o'):
@@ -458,6 +446,7 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount):
                         continue
                     i_idx = mx - id_seq_gap
                     selected_seq = sequence_ids[current_y + my - 1]
+                    undo_changes.append(sequences.copy())
                     for k in sequences:
                         if k == selected_seq:
                             sequences[k] = (sequences[k][:current_x + i_idx] +
@@ -465,7 +454,6 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount):
                                             sequences[k][current_x + i_idx:])
                         else:
                             sequences[k] += '-'
-                    undo_changes.append(sequences)
                     the_change_count += 1
                     screen_display(screen, display_memory['display_mode'],
                                    sequences, sequence_ids, ref_name,
@@ -475,6 +463,7 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount):
                                    pattern_positions, indexes,
                                    current_file
                                    )
+            original = sequences.copy()
 
         elif key_pressed == ord('d'):
             if display_memory['display_mode'] != 'o':
@@ -493,6 +482,7 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount):
                         continue
                     selected_seq = sequence_ids[current_y + my - 1]
                     i_idx = mx - id_seq_gap
+                    undo_changes.append(sequences.copy())
                     for k in sequences:
                         if k == selected_seq:
                             sequences[k] = (sequences[k][:current_x + i_idx] +
@@ -500,7 +490,6 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount):
                                                          ])
                         else:
                             sequences[k] = sequences[k][:-1]
-                    undo_changes.append(sequences)
                     the_change_count += 1
                     screen_display(screen, display_memory['display_mode'],
                                    sequences, sequence_ids, ref_name,
@@ -510,6 +499,7 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount):
                                    pattern_positions, indexes,
                                    current_file
                                    )
+            original = sequences.copy()
         elif key_pressed == ord('D'):
             if display_memory['display_mode'] != 'o':
                 continue
@@ -527,29 +517,33 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount):
                         continue
                     selected_seq = sequence_ids[current_y + my - 1]
                     i_idx = mx - id_seq_gap
+                    the_change_count += 1
                     for k in sequences:
                         sequences[k] = (sequences[k][:current_x + i_idx] +
                                         sequences[k][current_x + i_idx + 1:])
-                undo_changes.append(sequences)
-                the_change_count += 1
-                screen_display(screen, display_memory['display_mode'],
-                               sequences, sequence_ids, ref_name,
-                               current_x, current_y, max_x, max_y, y_upto,
-                               x_upto, id_seq_gap, max_height,
-                               color_pair, alternative_color_pair,
-                               pattern_positions, indexes,
-                               current_file
-                               )
+                    undo_changes.append(sequences.copy())
+                    screen_display(screen, display_memory['display_mode'],
+                                   sequences, sequence_ids, ref_name,
+                                   current_x, current_y, max_x, max_y, y_upto,
+                                   x_upto, id_seq_gap, max_height,
+                                   color_pair, alternative_color_pair,
+                                   pattern_positions, indexes,
+                                   current_file
+                                   )
+            original = sequences.copy()
+
         elif key_pressed == 21:  # ctrl +u
-            if undo_changes:
+            if undo_changes and (display_memory['display_mode'] == 'o'):
                 redo_changes.append(sequences)
                 sequences = undo_changes.pop()
                 the_change_count -= 1
+                original = sequences.copy()
         elif key_pressed == 18:  # ctrl +r
-            if redo_changes:
+            if redo_changes and (display_memory['display_mode'] == 'o'):
                 undo_changes.append(sequences)
                 sequences = redo_changes.pop()
                 the_change_count += 1
+                original = sequences.copy()
 
         elif key_pressed == ord('t'):
             display_memory['display_mode'] = 't'
@@ -754,17 +748,24 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount):
                        current_file
                        )
         key_pressed = screen.getch()
+        screen.addstr(0,0, modified + " Anmol")
         if chr(key_pressed) in 'npq':  # Next, Previous, Quit
             if display_memory['display_mode'] == 'f':
                 display_memory['display_mode'] == 'o'
             display_memory['display_x'] = current_x
             display_memory['display_y'] = current_y
-            hidden_path = path.split(current_file)
-            hidden_path = "%s/.alnview/%s" % (hidden_path[0], hidden_path[1])
+            split_path = path.split(current_file)
+            hidden_path = "%s/.alnview/%s" % (split_path[0], split_path[1])
             pickle.dump(display_memory, open(hidden_path, "wb"))
             if aln_file_found:
                 with open("%s/current_file_number" % hiddenpath, "w") as cfn:
                     cfn.write("%d" % current_file_num)
+            if the_change_count:
+                if not path.isdir(modified):
+                    makedirs(modified)
+                with open("%s/%s" % (modified, split_path[1]), "w") as fout:
+                    for k in original:
+                        fout.write(">%s\n%s\n" % (k, original[k]))
 
     screen_end(screen)
     if not aln_file_found:
