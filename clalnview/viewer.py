@@ -470,13 +470,16 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount, modified):
                 key_pressed = screen.getch()
                 if key_pressed == curses.KEY_MOUSE:
                     _, mx, my, _, _ = curses.getmouse()
-                    if my in [0, max_y - 1]:
+                    if ((my in [0, max_y - 1]) or
+                            (mx < id_seq_gap) or
+                            ((my + current_y) > len(sequence_ids)) or
+                            (current_x + (mx - id_seq_gap) >
+                             len(sequences[sequence_ids[0]]))):
                         # TODO: This need to be fixed for small number of
                         # samples
                         continue
+
                     if mx < id_seq_gap:
-                        # TODO: This need to be fixed for small number of
-                        # samples
                         continue
                     i_idx = mx - id_seq_gap
                     selected_seq = sequence_ids[current_y + my - 1]
@@ -506,13 +509,11 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount, modified):
                 key_pressed = screen.getch()
                 if key_pressed == curses.KEY_MOUSE:
                     _, mx, my, _, _ = curses.getmouse()
-                    if my in [0, max_y - 1]:
-                        # TODO: This need to be fixed for small number of
-                        # samples
-                        continue
-                    if mx < id_seq_gap:
-                        # TODO: This need to be fixed for small number of
-                        # samples
+                    if ((my in [0, max_y - 1]) or
+                            (mx < id_seq_gap) or
+                            ((my+current_y) > len(sequence_ids)) or
+                            (current_x + (mx - id_seq_gap) >
+                             len(sequences[sequence_ids[0]]))):
                         continue
                     selected_seq = sequence_ids[current_y + my - 1]
                     i_idx = mx - id_seq_gap
@@ -541,13 +542,11 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount, modified):
                 key_pressed = screen.getch()
                 if key_pressed == curses.KEY_MOUSE:
                     _, mx, my, _, _ = curses.getmouse()
-                    if my in [0, max_y - 1]:
-                        # TODO: This need to be fixed for small number of
-                        # samples
-                        continue
-                    if mx < id_seq_gap:
-                        # TODO: This need to be fixed for small number of
-                        # samples
+                    if ((my in [0, max_y - 1]) or
+                            (mx < id_seq_gap) or
+                            ((my+current_y) > len(sequence_ids)) or
+                            (current_x + (mx - id_seq_gap) >
+                             len(sequences[sequence_ids[0]]))):
                         continue
                     selected_seq = sequence_ids[current_y + my - 1]
                     i_idx = mx - id_seq_gap
@@ -565,17 +564,47 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount, modified):
                                    current_file
                                    )
             original = sequences.copy()
+        elif key_pressed == ord('S'):
+            if display_memory['display_mode'] != 'o':
+                continue
+            while key_pressed != 27:
+                key_pressed = screen.getch()
+                if key_pressed == curses.KEY_MOUSE:
+                    _, mx, my, _, _ = curses.getmouse()
+                    if ((my in [0, max_y - 1]) or
+                            ((my + current_y) > len(sequence_ids))):
+                        continue
+
+                    selected_seq = sequence_ids[current_y + my - 1]
+                    undo_changes.append(sequences.copy())
+                    del sequences[selected_seq]
+                    the_change_count += 1
+                    # sequence_ids =
+                    sequence_ids.remove(selected_seq)
+                    screen_display(screen, display_memory['display_mode'],
+                                   sequences, sequence_ids, ref_name,
+                                   current_x, current_y, max_x, max_y, y_upto,
+                                   x_upto, id_seq_gap, max_height,
+                                   color_pair, alternative_color_pair,
+                                   pattern_positions, indexes,
+                                   current_file
+                                   )
+            original = sequences.copy()
 
         elif key_pressed == 21:  # ctrl +u
             if undo_changes and (display_memory['display_mode'] == 'o'):
                 redo_changes.append(sequences)
                 sequences = undo_changes.pop()
+                sequence_ids = list(sequences.keys())
+                sequence_ids.sort()
                 the_change_count -= 1
                 original = sequences.copy()
         elif key_pressed == 18:  # ctrl +r
             if redo_changes and (display_memory['display_mode'] == 'o'):
                 undo_changes.append(sequences)
                 sequences = redo_changes.pop()
+                sequence_ids = list(sequences.keys())
+                sequence_ids.sort()
                 the_change_count += 1
                 original = sequences.copy()
 
