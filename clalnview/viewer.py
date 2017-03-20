@@ -27,6 +27,7 @@ helpdict = OrderedDict([
     ('i', 'Gap insert mode'),
     ('d', 'Delete mode'),
     ('D', 'Column delete mode'),
+    ('S', 'Sequence delete mode'),
     ('ctrl+u', 'Undo Chnages'),
     ('ctrl+r', 'Redo Chnages'),
     ('ctrl+up arrow', 'One page up'),
@@ -45,6 +46,7 @@ helpdict = OrderedDict([
     ('down arrow', '1 positions down'),
     ('End', 'End of alignment'),
     ('Home', 'Begining of alignment'),
+    ('Esc', 'Escape from any mode'),
     ('?', 'This help')
 ])
 
