@@ -89,7 +89,7 @@ def screen_display(screen, display_mode,
         for i, pos in enumerate(range(current_x, x_upto)):
             if pos % 10 == 0:
                 if (i + id_seq_gap) > (max_x - len(str(pos)) - 1):
-                    # NOTE: If inclution of last position number is needed.
+                    # NOTE: If inclusion of last position number is needed.
                     # screen.addstr(0, pos + id_seq_gap,
                     #               "|" + str(pos + current_x))
                     continue
@@ -370,7 +370,7 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount, modified):
 
                 if current_file_num > 0:
                     # Less likely to be used unless some new files
-                    # ToDo: Add a feature to remember the file number
+                    # TODO: Add a feature to remember the file number
                     if key_pressed == ord('p'):
                         continue
                 else:
