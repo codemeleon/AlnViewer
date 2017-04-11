@@ -20,7 +20,7 @@ python setup install
 
 or
 
-pip install git+git@github.com:codemeleon/ClAlnView.git
+pip install git+https://github.com/codemeleon/ClAlnView.git
 
 # Usage
 
