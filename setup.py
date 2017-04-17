@@ -13,5 +13,6 @@ setup(name="clalnview",
                         'biopython'],
       license='GPLv3',
       scripts=['bin/clalnview'],
-      py_modules=["clalnview"]
+      packages=["clalnview"],
+      zip_safe=False
       )

@@ -14,7 +14,7 @@ from os import path, makedirs
 @click.option("--alntype", help="nucleotide/Amino Acid",
               type=click.Choice(["nuc", "amn"]),
               default="amn", show_default=True)
-@click.option("--undocount", help="Number of recoorections",
+@click.option("--undocount", help="Number of recorrections",
               type=int,
               default=20, show_default=True)
 @click.option("--modified", help="Folder for modified file",
@@ -43,6 +43,7 @@ def run(alnpath, alntype, undocount, modified):
     if not path.exists(hidden_path):
         makedirs(hidden_path)
     if len(file_list):
+        # viewer.show_me_the_alignment()
         viewer.show_me_the_alignment(file_list, hidden_path,
                                      alntype, undocount, modified)
     else:
