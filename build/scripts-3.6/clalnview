@@ -30,12 +30,12 @@ def run(alnpath, alntype, undocount, modified):
     if path.isfile(alnpath):
         hidden_path = path.split(alnpath)[0] + "/.alnview"
         file_list = [alnpath]
-        if modified == "modified":
-            modified = path.split(alnpath)[0] + "/" + modified
+        # if modified == "modified":
+        modified = path.split(alnpath)[0] + "/" + modified
     elif path.isdir(alnpath):
         hidden_path = alnpath + "/.alnview"
-        if modified == "modified":
-            modified = path.split(alnpath)[0] + "/" + modified
+        # if modified == "modified":
+        modified = path.split(alnpath)[0] + "/" + modified
         file_list = glob("%s/*" % alnpath)
     else:
         click.echo("Stranger thing(s). Don't know what to do.")
@@ -44,6 +44,9 @@ def run(alnpath, alntype, undocount, modified):
         makedirs(hidden_path)
     if len(file_list):
         # viewer.show_me_the_alignment()
+        # print("Kiran, %s" % modified)
+        if modified.startswith("/"):
+            modified = modified[1:]
         viewer.show_me_the_alignment(file_list, hidden_path,
                                      alntype, undocount, modified)
     else:

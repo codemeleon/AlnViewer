@@ -795,6 +795,7 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount, modified):
                     cfn.write("%d" % current_file_num)
             if the_change_count:
                 if not path.isdir(modified):
+                    print("Anmol, %s" % modified)
                     makedirs(modified)
                 with open("%s/%s" % (modified, split_path[1]), "w") as fout:
                     for k in original:

@@ -42,11 +42,11 @@ Press **i** and click on a base of sequence to insert gap. For rest of the seque
 Press **S** and click on a sequence to delete. When you are done, press **esc**.
 
 ## UnDo and ReDo
-**ctrl+u** and **ctrl+r** for undoing and redoing above changes in normal mode. 
+**ctrl+u** and **ctrl+r** for undoing and redoing above changes in normal mode.
 
 # Key binding options
 
-Please press "?" inside the program
+Please press **?** inside the program
 
 ![Normal View][i6]
 
