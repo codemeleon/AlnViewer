@@ -27,6 +27,22 @@ pip install git+https://github.com/codemeleon/ClAlnView.git
 alnviewer --alnpath [aln_file|aln_folder] --alntype [amn|nuc] --undocount num --modified path_for_altered_files
 
 
+# Editing Options
+
+## Removing bases
+Press **d** and click on bases of any sequence to remove the base. From other sequences, bases from ends will be removed. When you are done, press **esc**.
+
+## Removing columns
+Press **D** and click on columns to remove columns. When you are done, press **esc**.
+
+## Inserting gaps
+Press **i** and click on a base of sequence to insert gap. For rest of the sequences, gaps will be appended at the end to keep the sequences of same length. When you are done, press **esc**.
+
+## Deleting a sequence
+Press **S** and click on a sequence to delete. When you are done, press **esc**.
+
+## UnDo and ReDo
+**ctrl+u** and **ctrl+r** for undoing and redoing above changes in normal mode. 
 
 # Key binding options
 
@@ -63,7 +79,6 @@ GPLv3
 # TODOs
 
 - [ ] Mostly speed improvements
-- [ ] add option to mark file to copy in different folder
 
 [i1]: figures/NormalView.png "Normal View"
 [i2]: figures/Reference_based.png "Reference View"
