@@ -24,7 +24,7 @@ pip install git+https://github.com/codemeleon/ClAlnView.git
 
 # Usage
 
-alnviewer --alnpath [aln_file|aln_folder] --alntype [amn|nuc] --undocount num --modified path_for_altered_files
+alnview --alnpath [aln_file|aln_folder] --alntype [amn|nuc] --undocount num --modified path_for_altered_files 
 
 
 # Editing Options
