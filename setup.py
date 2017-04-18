@@ -2,7 +2,7 @@
 
 from setuptools import setup
 
-setup(name="clalnview",
+setup(name="alnview",
       version='0.0.1',
       description="To display alignments in commanline",
       author="Anmol M. Kiran\nJennifer E. Cornick",
@@ -12,7 +12,7 @@ setup(name="clalnview",
                         'pandas',
                         'biopython'],
       license='GPLv3',
-      scripts=['bin/clalnview'],
-      packages=["clalnview"],
+      scripts=['bin/alnview'],
+      packages=["alnview"],
       zip_safe=False
       )
