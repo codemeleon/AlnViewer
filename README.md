@@ -1,6 +1,6 @@
 # About
 
-AlnViewer is a simple interactive command-line key binding based viewer/editor to display/edit pre-processed multiple sequence alignments. Alnviewer can be used locally or over remote login to visualize one or multiple alignments without leaving the command-line user interface.
+Alnview is a simple interactive command-line key binding based viewer/editor to display/edit pre-processed multiple sequence alignments. Alnviewer can be used locally or over remote login to visualize one or multiple alignments without leaving the command-line user interface.
 
 A desire to be able to able to visualise large multiple sequence alignments, stored on a remote host, initiated the design of the program.
 
@@ -24,7 +24,17 @@ pip install git+https://github.com/codemeleon/ClAlnView.git
 
 # Usage
 
-alnview --alnpath [aln_file|aln_folder] --alntype [amn|nuc] --undocount num --modified path_for_altered_files 
+alnview --alnpath [aln_file|aln_folder] --alntype [amn|nuc] --undocount num --modified path_for_altered_files
+
+
+# Amino acid highligting
+
+Amino acid color in **three** different modes. Only valid for normal mode where all amino acid sequences are being displayed.
+
+1. All the amino acids will be displayed with distincs colors. (use **o** key)
+2. Fobicity base grouping has beed done using : Polar, Hydrophobic, charged, uncharged. (use **b** key)
+3. Sizes: large and small. (use **z** key)
+4. *Your suggestions groupping*
 
 
 # Editing Options
