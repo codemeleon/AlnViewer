@@ -20,7 +20,7 @@ python setup install
 
 or
 
-pip install git+https://github.com/codemeleon/ClAlnView.git
+pip install git+https://github.com/codemeleon/AlnView.git
 
 # Usage
 
@@ -34,7 +34,7 @@ Amino acid color in **three** different modes. Only valid for normal mode where 
 1. All the amino acids will be displayed with distincs colors. (use **o** key)
 2. Fobicity base grouping has beed done using : Polar, Hydrophobic, charged, uncharged. (use **b** key)
 3. Sizes: large and small. (use **z** key)
-4. *Your suggestions groupping*
+4. *Your suggestions for groupping*
 
 
 # Editing Options
