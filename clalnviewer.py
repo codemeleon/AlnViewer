@@ -14,7 +14,7 @@ from os import path, makedirs
 @click.option("--alntype", help="nucleotide/Amino Acid",
               type=click.Choice(["nuc", "amn"]),
               default="amn", show_default=True)
-@click.option("--undocount", help="Number of recorrections",
+@click.option("--undocount", help="Number of UnDo/ReDo count",
               type=int,
               default=20, show_default=True)
 @click.option("--modified", help="Folder for modified file",
