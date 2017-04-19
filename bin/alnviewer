@@ -2,7 +2,7 @@
 """Main file for the task."""
 
 import click
-from alnview import viewer
+from alnviewer import viewer
 from glob import glob
 from os import path, makedirs
 

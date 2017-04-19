@@ -1,6 +1,6 @@
 # About
 
-Alnview is a simple interactive command-line key binding based viewer/editor to display/edit pre-processed multiple sequence alignments. Alnviewer can be used locally or over remote login to visualize one or multiple alignments without leaving the command-line user interface.
+Alnviewer is a simple interactive command-line key binding based viewer/editor to display/edit pre-processed multiple sequence alignments. Alnviewer can be used locally or over remote login to visualize one or multiple alignments without leaving the command-line user interface.
 
 A desire to be able to able to visualise large multiple sequence alignments, stored on a remote host, initiated the design of the program.
 
@@ -24,7 +24,7 @@ pip install git+https://github.com/codemeleon/AlnViewer.git
 
 # Usage
 
-alnview --alnpath [aln_file|aln_folder] --alntype [amn|nuc] --undocount num --modified path_for_altered_files
+alnviewer --alnpath [aln_file|aln_folder] --alntype [amn|nuc] --undocount num --modified path_for_altered_files
 
 
 # Amino acid highligting
