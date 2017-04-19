@@ -20,7 +20,7 @@ python setup install
 
 or
 
-pip install git+https://github.com/codemeleon/AlnView.git
+pip install git+https://github.com/codemeleon/AlnViewer.git
 
 # Usage
 
