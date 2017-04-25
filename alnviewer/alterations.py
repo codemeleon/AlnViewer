@@ -62,9 +62,6 @@ def pattern_ranges(sequences, pattern):
                                                str(sequences[k]))]
         for p in pattern_pos[k]:
             search_movement.append((i, p))
-    with open("hello.txt", "w") as fout:
-        print(pattern_pos, file=fout)
-        # print
     return pattern_pos, search_movement
 
 

@@ -239,7 +239,6 @@ def is_alignment(alnfile):
     """Check for existance of alignemnt file."""
     for fltype in ['fasta', 'clustal', 'nexus', 'phylip']:
         try:
-            print(alnfile, "Anmol")
             alignment = AlignIO.read(open(alnfile), fltype)
             sequences = {}
             # alignment_length = alignment.get_alignment_length()

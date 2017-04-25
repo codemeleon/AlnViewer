@@ -43,8 +43,6 @@ def run(alnpath, alntype, undocount, modified):
     if not path.exists(hidden_path):
         makedirs(hidden_path)
     if len(file_list):
-        # viewer.show_me_the_alignment()
-        # print("Kiran, %s" % modified)
         if modified.startswith("/"):
             modified = modified[1:]
         viewer.show_me_the_alignment(file_list, hidden_path,
