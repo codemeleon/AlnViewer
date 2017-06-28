@@ -781,7 +781,7 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount, modified):
                        current_file
                        )
         key_pressed = screen.getch()
-        if chr(key_pressed) in 'npq':  # Next, Previous, Quit
+        if key_pressed in [110, 112, 113]:#'npq':  # Next, Previous, Quit
             if display_memory['display_mode'] == 'f':
                 display_memory['display_mode'] == 'o'
             display_memory['display_x'] = current_x
