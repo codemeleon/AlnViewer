@@ -36,10 +36,16 @@ def color_pairs(curses, mode):
     color_pair = {}
     alternative_color_pair = {}
     for k in alphabet_colors:
-        curses.init_pair(ord(k), -1, alphabet_colors[k])
+        if k not in alphabet_colors:
+            curses.init_pair(ord(k), -1, 255)
+        else:
+            curses.init_pair(ord(k), -1, alphabet_colors[k])
         color_pair[k] = curses.color_pair(ord(k))
         # Check in 1000 is important
-        curses.init_pair(ord(k)+100, alphabet_colors[k], -1)
+        if k not in alphabet_colors:
+            curses.init_pair(ord(k)+100, 255, -1)
+        else:
+            curses.init_pair(ord(k)+100, alphabet_colors[k], -1)
         # curses.init_pair(ord(k), alphabet_colors[k], 80)
         alternative_color_pair[k] = curses.color_pair(ord(k)+100)
     return color_pair, alternative_color_pair

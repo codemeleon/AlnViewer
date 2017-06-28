@@ -28,10 +28,13 @@ def run(alnpath, alntype, undocount, modified):
         exit(1)
     file_list = []
     if path.isfile(alnpath):
-        hidden_path = path.split(alnpath)[0] + "/.alnview"
+        dirpath = path.split(alnpath)[0]
+        if not len(dirpath):
+            dirpath = '.'
+        hidden_path = dirpath + "/.alnview"
         file_list = [alnpath]
         # if modified == "modified":
-        modified = path.split(alnpath)[0] + "/" + modified
+        modified = dirpath + "/" + modified
     elif path.isdir(alnpath):
         hidden_path = alnpath + "/.alnview"
         # if modified == "modified":
