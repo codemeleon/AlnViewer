@@ -26,11 +26,12 @@ def run(alnpath, alntype, undocount, modified):
     if not alnpath or not path.exists(alnpath):
         click.echo("%s doesn't exist\nExiting ...")
         exit(1)
+    alnpath = path.abspath(alnpath)
     file_list = []
     if path.isfile(alnpath):
         dirpath = path.split(alnpath)[0]
-        if not len(dirpath):
-            dirpath = '.'
+        # if not len(dirpath):
+        #     dirpath = '.'
         hiddenpath = dirpath + "/.alnview"
         file_list = [alnpath]
         # if modified == "modified":
@@ -46,8 +47,6 @@ def run(alnpath, alntype, undocount, modified):
     if not path.exists(hiddenpath):
         makedirs(hiddenpath)
     if len(file_list):
-        if modified.startswith("/"):
-            modified = modified[1:]
         viewer.show_me_the_alignment(file_list, hiddenpath,
                                      alntype, undocount, modified)
     else:
