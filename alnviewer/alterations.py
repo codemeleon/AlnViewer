@@ -65,10 +65,10 @@ def pattern_ranges(sequences, pattern):
     return pattern_pos, search_movement
 
 
-def old_status(current_file):
+def old_status(current_file,hiddenpath):
     try:
         hidden_path = path.split(current_file)
-        hidden_path = "%s/.alnview/%s" % (hidden_path[0],
+        hidden_path = "%s/%s" % (hiddenpath,
                                           hidden_path[1])
         return pickle.load(open(hidden_path, "rb"))
 

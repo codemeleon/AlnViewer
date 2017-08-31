@@ -275,7 +275,7 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount, modified):
         sequence_ids = list(original.keys())  # If order changes,correct it
         sequence_ids.sort()
         indexes = None
-        display_memory = old_status(current_file)
+        display_memory = old_status(current_file, hiddenpath)
         current_x, current_y = (display_memory['display_x'],
                                 display_memory['display_y'])
         if ((current_y > len(sequence_ids)) or
@@ -787,7 +787,7 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount, modified):
             display_memory['display_x'] = current_x
             display_memory['display_y'] = current_y
             split_path = path.split(current_file)
-            hidden_path = "%s/.alnview/%s" % (split_path[0], split_path[1])
+            hidden_path = "%s/%s" % (hiddenpath, split_path[1])
             pickle.dump(display_memory, open(hidden_path, "wb"))
             if aln_file_found:
                 with open("%s/current_file_number" % hiddenpath, "w") as cfn:
@@ -802,4 +802,4 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount, modified):
     screen_end(screen)
     if not aln_file_found:
         click.echo("No valid alignment in supported"
-                   " file format found. Exiting")
+                   " file format found. Exiting . . . .")

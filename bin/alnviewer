@@ -31,24 +31,24 @@ def run(alnpath, alntype, undocount, modified):
         dirpath = path.split(alnpath)[0]
         if not len(dirpath):
             dirpath = '.'
-        hidden_path = dirpath + "/.alnview"
+        hiddenpath = dirpath + "/.alnview"
         file_list = [alnpath]
         # if modified == "modified":
         modified = dirpath + "/" + modified
     elif path.isdir(alnpath):
-        hidden_path = alnpath + "/.alnview"
+        hiddenpath = alnpath + "/.alnview"
         # if modified == "modified":
         modified = path.split(alnpath)[0] + "/" + modified
         file_list = glob("%s/*" % alnpath)
     else:
         click.echo("Stranger thing(s). Don't know what to do.")
         exit(1)
-    if not path.exists(hidden_path):
-        makedirs(hidden_path)
+    if not path.exists(hiddenpath):
+        makedirs(hiddenpath)
     if len(file_list):
         if modified.startswith("/"):
             modified = modified[1:]
-        viewer.show_me_the_alignment(file_list, hidden_path,
+        viewer.show_me_the_alignment(file_list, hiddenpath,
                                      alntype, undocount, modified)
     else:
         click.echo("No input file found in give folder")
