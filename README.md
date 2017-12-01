@@ -32,7 +32,7 @@ alnviewer --alnpath [aln_file|aln_folder] --alntype [amn|nuc] --undocount num --
 Amino acid color in **three** different modes. Only valid for normal mode where all amino acid sequences are being displayed.
 
 1.  All the amino acids will be displayed with distincs colors. (use **o** key)
-2.  Fobicity base grouping has beed done using : Polar, Hydrophobic, charged, uncharged. (use **b** key)
+2.  Phobicity base grouping has beed done using : Polar, Hydrophobic, charged, uncharged. (use **b** key)
 3.  Sizes: large and small. (use **z** key)
 4.  *Your suggestions for groupping*
 
