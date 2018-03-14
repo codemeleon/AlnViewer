@@ -16,11 +16,19 @@ The program is being developed by the MiDEP group at the [Malawi Liverpool Wellc
 
 # Installation
 
+```bash
 python setup install
-
+```
 or
 
+```bash
 pip install git+https://github.com/codemeleon/AlnViewer.git
+```
+# Uninstall
+
+```bash
+pip uninstall alnviewer
+```
 
 # Usage
 
@@ -89,6 +97,8 @@ GPLv3
 # TODOs
 
 - [ ] Mostly speed improvements
+- [x] Add minimum percent similar nucleotide/aminoacids option at a location to considering homozygous location.This will be available in next version
+- [ ] Option to change homozygous percent and gap percent while visualising the sequences
 
 [i1]: figures/NormalView.png "Normal View"
 [i2]: figures/Reference_based.png "Reference View"
