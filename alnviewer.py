@@ -20,7 +20,9 @@ from os import path, makedirs
 @click.option("--modified", help="Folder for modified file",
               type=str,
               default="modified", show_default=True)
-def run(alnpath, alntype, undocount, modified):
+@click.option("-gpc", help="Gap fraction to suppress", type=float, default=0.5, show_default=True)
+@click.option("-hpc", help="Homogygous fraction to suppress", type=float, default=0.5, show_default=True)
+def run(alnpath, alntype, undocount, modified, gpc, hpc):
     """Commandline Sequence alignemnt viewer."""
     """Please prefer to use it in full screen mode."""
     if not alnpath or not path.exists(alnpath):
@@ -48,7 +50,8 @@ def run(alnpath, alntype, undocount, modified):
         makedirs(hiddenpath)
     if len(file_list):
         viewer.show_me_the_alignment(file_list, hiddenpath,
-                                     alntype, undocount, modified)
+                                     alntype, undocount, modified,
+                                     gpc, hpc)
     else:
         click.echo("No input file found in give folder")
         exit(1)

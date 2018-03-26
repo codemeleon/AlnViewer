@@ -19,11 +19,19 @@ def df_to_aln(df):
     return df
 
 
-def trim_map(original):
+def trim_map(original, gpc, hpc):
+    # NOTE: gpc is gap percent and hpc is hetero percent
     "Return data fram with location where there is"
     " more than one kind nucleotide or amino acid"
     # You might consider to return indexes and sequences
     sequences = aln_to_df(original)
+    # TODO Might need some corrections here
+    sequences = sequences[(sequences == '-'
+                           ).astype(int
+                                    ).sum(axis=1)/sequences.shape[1] < gpc]
+    sequences = sequences[sequences.apply(lambda x: x.tolist().count(
+        x.mode().values[0]), axis=1)/sequences.shape[1] > hpc]
+    # sequences = sequences.mode(axis=1)
     sequences = sequences.loc[sequences.apply(pd.Series.nunique, axis=1) != 1]
     indexes = sequences.index + 1
     indexes = list(map(str, indexes))
@@ -65,18 +73,18 @@ def pattern_ranges(sequences, pattern):
     return pattern_pos, search_movement
 
 
-def old_status(current_file,hiddenpath):
+def old_status(current_file, hiddenpath):
     try:
         hidden_path = path.split(current_file)
         hidden_path = "%s/%s" % (hiddenpath,
-                                          hidden_path[1])
+                                 hidden_path[1])
         return pickle.load(open(hidden_path, "rb"))
 
     except:
         return {
-                'display_mode': 'o',
-                'display_color': 'normal',
-                'display_ref': None,
-                'display_x': 0,
-                'display_y': 0
-                }
+            'display_mode': 'o',
+            'display_color': 'normal',
+            'display_ref': None,
+            'display_x': 0,
+            'display_y': 0
+        }

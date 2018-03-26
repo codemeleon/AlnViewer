@@ -11,7 +11,6 @@ from os import path, makedirs
 from Bio import AlignIO
 from collections import OrderedDict
 
-# TODO: Make alignment in uppercase
 # Some fixed variables
 helpdict = OrderedDict([
     ('b', 'Phobicity based colors'),
@@ -369,7 +368,6 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount, modified):
 
                 if current_file_num > 0:
                     # Less likely to be used unless some new files
-                    # TODO: Add a feature to remember the file number
                     if key_pressed == ord('p'):
                         continue
                 else:
@@ -476,7 +474,6 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount, modified):
                             ((my + current_y) > len(sequence_ids)) or
                             (current_x + (mx - id_seq_gap) >
                              len(sequences[sequence_ids[0]]))):
-                        # TODO: This need to be fixed for small number of
                         # samples
                         continue
 
