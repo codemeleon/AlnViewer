@@ -11,7 +11,7 @@ from os import path, makedirs
 from Bio import AlignIO
 from collections import OrderedDict
 
-
+# TODO: Make alignment in uppercase
 # Some fixed variables
 helpdict = OrderedDict([
     ('b', 'Phobicity based colors'),
@@ -243,7 +243,7 @@ def is_alignment(alnfile):
             sequences = {}
             # alignment_length = alignment.get_alignment_length()
             for rec in alignment:
-                sequences[rec.id] = rec.seq  # [:80]
+                sequences[rec.id] = str(rec.seq).upper()  # [:80]
             return sequences  # alignment_length
         except ValueError:
             continue
@@ -612,7 +612,9 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount, modified):
         elif key_pressed == ord('t'):
             display_memory['display_mode'] = 't'
             display_memory['display_ref'] = None
-            sequences, indexes, max_height = trim_map(original)
+            # TODO add feature to alter  gpc and hpc
+            sequences, indexes, max_height = trim_map(original,
+                                                      gpc, hpc)
             if current_x > len(indexes):
                 current_x = len(indexes) - (max_x - id_seq_gap - 1)
                 if current_x < 0:
@@ -781,7 +783,7 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount, modified):
                        current_file
                        )
         key_pressed = screen.getch()
-        if key_pressed in [110, 112, 113]:#'npq':  # Next, Previous, Quit
+        if key_pressed in [110, 112, 113]:  # 'npq':  # Next, Previous, Quit
             if display_memory['display_mode'] == 'f':
                 display_memory['display_mode'] == 'o'
             display_memory['display_x'] = current_x
