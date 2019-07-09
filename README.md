@@ -44,6 +44,9 @@ Amino acid color in **three** different modes. Only valid for normal mode where 
 3.  Sizes: large and small. (use **z** key)
 4.  *Your suggestions for groupping*
 
+# Phylogeny Viewer
+
+Phylogeny will be created in ascii format. Please do not expect is will as good as graphical. It will be a minmalistic represetation of phylogeny.
 
 # Editing Options
 
