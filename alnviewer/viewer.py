@@ -1,18 +1,23 @@
-#!/usr/bin/env python
 
 """View commands."""
 
+
 import curses
-import click
 import pickle
-from .alphabet_colors import color_pairs
-from .alterations import old_status, ref_map, pattern_ranges, trim_map
-from os import path, makedirs
+from collections import OrderedDict, deque
+from os import makedirs, path
+
+import click
 from Bio import AlignIO
-from collections import OrderedDict
+from pyfaidx import Fasta
+
+# import .externals as extnls
+from .alnreader import alignment_dict
+from .alphabet_colors import color_pairs
+from .alterations import old_status, pattern_ranges, ref_map, trim_map
 
 # Some fixed variables
-helpdict = OrderedDict([
+HELPDICT = OrderedDict([
     ('b', 'Phobicity based colors'),
     ('a', 'Normal view of amino acids'),
     ('z', 'Size based colors'),
@@ -50,6 +55,64 @@ helpdict = OrderedDict([
 ])
 
 
+class IdQueues:
+    # Use dqueue for settings
+    def __init__(self, up, current, down):
+        self.up = up
+        self.current = current
+        self.down = up
+
+    def move_up(self):
+        pass
+
+    def move_down(self):
+        pass
+
+    def expand(self):
+        pass
+
+
+
+class CoorQueues:
+    # Use dqueue for settings
+    def __init__(self, left, current, right):
+        self.left = left
+        self.current = current
+        self.right = right
+
+    def move_left(self):
+        pass
+
+    def move_right(self):
+        pass
+
+    def expand(self):
+        pass
+
+
+class ViewArea(IdQueues, CoorQueues):
+    # Need to make some adjustments of faster analysis
+    def __init__(self, mode):
+        self.mode = mode
+    
+    def dot_view(self):
+        '''Shows changes relative to a selected reference'''
+        pass
+    def diff_view(self):
+        '''Shows location with differences only'''
+        pass
+
+    pass
+
+
+
+class Coverter:
+    def __init__(self):
+        pass
+
+
+
+
 # Screen control
 def screen_start():
     """Start screen."""
@@ -70,15 +133,32 @@ def screen_end(screen):
     screen.keypad(0)
     curses.echo()
     curses.endwin()
-    return
+
+class FileNSeq:
+    def __init__(self, current_file, sequences, sequence_ids, ref_name):
+        self.current_file = current_file
+        self.sequences = sequences
+        self.sequence_ids = sequence_ids
+        self.ref_name = ref_name
 
 
-def screen_display(screen, display_mode,
-                   sequences, sequence_ids, ref_name,
+
+
+
+
+
+def screen_display(
+        screen, display_mode,
+        # sequence related information
+        sequences, sequence_ids, ref_name,
+        # Location related information
                    current_x, current_y, max_x, max_y, y_upto, x_upto,
                    id_seq_gap, max_height,
+        # Color related information
                    color_pair, alternative_color_pair,
+        # pattern related information
                    pattern_positions, indexes,
+        # Merge this with file  related information
                    current_file
                    ):
     """Display alignment of sequences."""
@@ -97,42 +177,43 @@ def screen_display(screen, display_mode,
         v_shift = 0
         if display_mode == 'r':
             screen.addstr(1, 1, ref_name[:id_width])
-            for pos, n in enumerate(sequences[ref_name][current_x: x_upto]):
-                screen.addstr(1, pos+id_seq_gap, n, color_pair[n])
+            for pos, nuc in enumerate(sequences[ref_name][current_x: x_upto]):
+                screen.addstr(1, pos+id_seq_gap, nuc, color_pair[nuc])
             display_mode = 'o'
             v_shift = 1
         if display_mode == 'o':
-            for i, s in enumerate(range(current_y, y_upto), 1):
-                screen.addstr(i + v_shift, 1, sequence_ids[s][:id_width])
-                for pos, n in enumerate(sequences[sequence_ids[s]
-                                                  ][current_x: x_upto]):
+            for i, seq_num in enumerate(range(current_y, y_upto), 1):
+                screen.addstr(i + v_shift, 1, sequence_ids[seq_num][:id_width])
+                for pos, nuc in enumerate(
+                        sequences[sequence_ids[seq_num]
+                                  ][current_x: x_upto]):
                     screen.addstr(i + v_shift, pos + id_seq_gap,
-                                  n, color_pair[n])
+                                  nuc, color_pair[nuc])
         else:
-            for i, s in enumerate(range(current_y, y_upto)):
-                screen.addstr(i + 1, 1, sequence_ids[s][:id_width])
-                for pos, n in enumerate(sequences[sequence_ids[s]
-                                                  ][current_x: x_upto]):
+            for i, seq_num in enumerate(range(current_y, y_upto)):
+                screen.addstr(i + 1, 1, sequence_ids[seq_num][:id_width])
+                for pos, nuc in enumerate(sequences[sequence_ids[seq_num]
+                                                    ][current_x: x_upto]):
                     found = False
-                    for rng in pattern_positions[sequence_ids[s]]:
+                    for rng in pattern_positions[sequence_ids[seq_num]]:
                         if rng[0] <= current_x + pos < rng[1]:
                             found = True
-                            screen.addstr(i + 1, pos + id_seq_gap, n,
-                                          alternative_color_pair[n])
+                            screen.addstr(i + 1, pos + id_seq_gap, nuc,
+                                          alternative_color_pair[nuc])
                     if not found:
                         screen.addstr(i + 1, pos + id_seq_gap,
-                                      n, color_pair[n])
+                                      nuc, color_pair[nuc])
 
     elif display_mode == 't':
-        for i, n in enumerate(indexes[current_x: x_upto]):
-            for pos, x in enumerate(n):
-                screen.addstr(pos, i + id_seq_gap, x)
-        for i, s in enumerate(range(current_y, y_upto),
-                              max_height):
-            screen.addstr(i, 1, sequence_ids[s][:id_width])
-            for pos, n in enumerate(sequences[sequence_ids[s]
-                                              ][current_x: x_upto]):
-                screen.addstr(i, pos + id_seq_gap, n, color_pair[n])
+        for i, n_n in enumerate(indexes[current_x: x_upto]):
+            for pos, x_x in enumerate(n_n):
+                screen.addstr(pos, i + id_seq_gap, x_x)
+        for i, s_s in enumerate(range(current_y, y_upto),
+                                max_height):
+            screen.addstr(i, 1, sequence_ids[s_s][:id_width])
+            for pos, n_n in enumerate(sequences[sequence_ids[s_s]
+                                                ][current_x: x_upto]):
+                screen.addstr(i, pos + id_seq_gap, n_n, color_pair[n_n])
 
     screen.addstr(max_y - 1, 0, current_file[:max_x - 1])
     screen.refresh()
@@ -148,6 +229,7 @@ def search_box_refresh(search_box, message):
 
 def input_screen_display(screen, text, typ, pos_x, pos_y, height, width):
     """Display mini input boxes."""
+    text += "Anmol Kiran"
     search_box = screen.subwin(height, width, pos_y, pos_x)
     search_box.clear()
     search_box.box()
@@ -167,7 +249,7 @@ def input_screen_display(screen, text, typ, pos_x, pos_y, height, width):
                     int(chr(char))
                     val_str += chr(char)
                 except ValueError:
-                    if char == 127 and len(val_str):  # 127: backspace Key
+                    if char == 127 and val_str:  # 127: backspace Key
                         val_str = val_str[:-1]
                 search_box_refresh(search_box, in_str+val_str)
                 char = search_box.getch()
@@ -185,7 +267,7 @@ def input_screen_display(screen, text, typ, pos_x, pos_y, height, width):
                     val_str += char_chr.upper()
                 else:
                     if char == 127:
-                        if len(val_str) > 0:
+                        if val_str:
                             val_str = val_str[:-1]
                 search_box_refresh(search_box, in_str+val_str)
                 char = search_box.getch()
@@ -198,7 +280,7 @@ def input_screen_display(screen, text, typ, pos_x, pos_y, height, width):
 def notice_display(screen, message):
     """Display notice from given list of text."""
     # messages must be an ordered list
-    xh, yh = 0, 0
+    x_h, y_h = 0, 0
     max_y, max_x = screen.getmaxyx()
     message_height = len(message)
     message_width = max(map(len, message))
@@ -207,34 +289,36 @@ def notice_display(screen, message):
         if key_pressed == curses.KEY_RESIZE:
             max_y, max_x = screen.getmaxyx()
         if key_pressed == curses.KEY_DOWN:
-            if yh + max_y == message_height-1:
+            if y_h + max_y == message_height-1:
                 key_pressed = screen.getch()
                 continue
-            yh += 1
+            y_h += 1
         elif key_pressed == curses.KEY_UP:
-            if yh == 0:
+            if y_h == 0:
                 key_pressed = screen.getch()
                 continue
-            yh -= 1
+            y_h -= 1
 
         elif key_pressed == curses.KEY_LEFT:
-            if xh == 0:
+            if x_h == 0:
                 key_pressed = screen.getch()
                 continue
-            xh -= 1
+            x_h -= 1
 
         elif key_pressed == curses.KEY_RIGHT:
-            if xh + max_x == message_width or message_width <= max_x:
+            if x_h + max_x == message_width or message_width <= max_x:
                 key_pressed = screen.getch()
                 continue
-            xh += 1
+            x_h += 1
         screen.clear()
-        for i, k in enumerate(message[yh: yh + max_y]):
-            screen.addstr(i, 0, k[xh: xh + max_x - 1])
+        for i, k in enumerate(message[y_h: y_h + max_y]):
+            screen.addstr(i, 0, k[x_h: x_h + max_x - 1])
         key_pressed = screen.getch()
 
 
 def is_alignment(alnfile):
+    # Don't care about alignment
+    # This function should be ingnored
     """Check for existance of alignemnt file."""
     for fltype in ['fasta', 'clustal', 'nexus', 'phylip']:
         try:
@@ -246,11 +330,17 @@ def is_alignment(alnfile):
             return sequences  # alignment_length
         except ValueError:
             continue
-    else:
-        return False
+    return False
+
+
+# TODO: Add option feature at the end of the page. Just like VIM
+# TODO: Add a fuction for continuous screen size check in change
+# TODO: Add notification for minimum screen size. if it goes lower than that
+#       add warning on the screen
 
 
 def show_me_the_alignment(file_list, hiddenpath, alntype, undocount, modified):
+    # TODO: Remove undocount problem
     """Main display function."""
     screen = screen_start()
     color_pair, alternative_color_pair = color_pairs(curses, "normal")
@@ -267,8 +357,12 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount, modified):
     except IOError:
         pass
     current_file = file_list[current_file_num]
-    original = is_alignment(current_file)
+    original = alignment_dict(current_file)
     aln_file_found = False
+    # Add information about windows size
+    # Same information about width
+    # sequences_to_display = []
+    # Try to add below information to a class 
     if original:
         aln_file_found = True
         sequence_ids = list(original.keys())  # If order changes,correct it
@@ -280,7 +374,7 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount, modified):
         if ((current_y > len(sequence_ids)) or
                 (current_x > len(original[sequence_ids[0]]))):
             # To avoid buggy alteration of sequence files
-            current_x, current_y = 0
+            current_x, current_y = 0, 0  # TODO: Check if current_y should be 0
 
         (color_pair,
          alternative_color_pair) = color_pairs(curses,
@@ -298,8 +392,15 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount, modified):
     else:
         key_pressed = ord('n')
 
+    # File and sequences information to the class
+    file_n_seq = FileNSeq()
+    file_n_seq.current_file = current_file
+    file_n_seq.ref_name = ref_name
+    file_n_seq.sequences = sequences
+    file_n_seq.sequence_ids = sequence_ids
+
     # Look up
-    helpme = ['%15s: %s' % (k, helpdict[k]) for k in helpdict]
+    helpme = ['%15s: %s' % (k, HELPDICT[k]) for k in HELPDICT]
     max_y, max_x = screen.getmaxyx()
     vertical_shift = 0
     undo_changes = []  # older changes
@@ -327,7 +428,7 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount, modified):
                 current_y = (len(sequence_ids) -
                              (max_y - vertical_shift - 2))
                 # Verical Rearrangement
-                pass
+                # pass
         if alntype == "amn":
             if key_pressed == ord("b"):
                 color_pair, alternative_color_pair = color_pairs(curses,
@@ -371,7 +472,7 @@ def show_me_the_alignment(file_list, hiddenpath, alntype, undocount, modified):
                     if key_pressed == ord('p'):
                         continue
                 else:
-                    key_pressed == ord('n')
+                    key_pressed = ord('n')
 
             sequence_ids = list(original.keys())
             sequences = original.copy()

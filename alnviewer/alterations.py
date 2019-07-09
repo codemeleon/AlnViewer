@@ -1,31 +1,50 @@
-#!/usr/bin/env python
-import pandas as pd
-from os import path
-import re
-import curses
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# File              : alnviewer/alterations.py
+# Date              : 23.10.2018
+# Last Modified Date: 23.10.2018
+# -*- coding: utf-8 -*-
+# File              : alnviewer/alterations.py
+# Date              : 23.10.2018
+# Last Modified Date: 23.10.2018
+# -*- coding: utf-8 -*-
+
+
+
 import pickle
+import re
+from os import path
+
+import pandas as pd
 
 
 def aln_to_df(original):
     "Coneverts alignment to DataFrame"
-    sequences = dict([(k, list(v)) for k, v in original.items()])
+    sequences = dict()
+    for key, val in original.items():
+        sequences[key] = val
+    # sequences = dict([(k, list(v)) for k, v in original.items()])
     sequences = pd.DataFrame.from_dict(sequences)
     return sequences
 
 
-def df_to_aln(df):
-    df = pd.DataFrame.to_dict(df, orient='list')
-    df = dict([(k, ''.join(v)) for k, v in df.items()])
-    return df
+def df_to_aln(seq_df):
+    """Convert DataFrame to Sequence dictionary"""
+    seq_df = pd.DataFrame.to_dict(seq_df, orient='list')
+    seq_dict = dict()
+    for key, val in seq_df.items():
+        seq_dict[key] = ''.join(val)
+    return seq_dict
+
 
 
 def trim_map(original, gpc, hpc):
     # NOTE: gpc is gap percent and hpc is hetero percent
-    "Return data fram with location where there is"
-    " more than one kind nucleotide or amino acid"
+    """Return data fram with location where there is more than one kind
+    nucleotide or amino acid"""
     # You might consider to return indexes and sequences
     sequences = aln_to_df(original)
-    # TODO Might need some corrections here
+    # TODO: Might need some corrections here
     sequences = sequences[(sequences == '-'
                            ).astype(int
                                     ).sum(axis=1)/sequences.shape[1] < gpc]
@@ -42,7 +61,7 @@ def trim_map(original, gpc, hpc):
 
 
 def ref_map(original, ref):
-    "Replace base/amino with . if it matches reference"
+    """Replace base/amino with . if it matches reference"""
     sequence_ids = list(original.keys())
     sequences = aln_to_df(original)
     ref_seq = sequences[ref]
@@ -59,6 +78,7 @@ def ref_map(original, ref):
 
 
 def pattern_ranges(sequences, pattern):
+    """Indentifying pattern range"""
     search_movement = []
     pattern_pos = {}
     sequence_ids = list(sequences.keys())
@@ -74,13 +94,14 @@ def pattern_ranges(sequences, pattern):
 
 
 def old_status(current_file, hiddenpath):
+    """Back to old parameters"""
     try:
         hidden_path = path.split(current_file)
         hidden_path = "%s/%s" % (hiddenpath,
                                  hidden_path[1])
         return pickle.load(open(hidden_path, "rb"))
 
-    except:
+    except Exception as ex:
         return {
             'display_mode': 'o',
             'display_color': 'normal',

@@ -1,10 +1,20 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# File              : alnviewer/alphabet_colors.py
+# Date              : 23.10.2018
+# Last Modified Date: 23.10.2018
+# -*- coding: utf-8 -*-
+
+"""Set color or nucleotides and amino acids"""
+
+
+
+
 import pandas as pd
-# pd.read_csv()
-# import curses
 
 
 def color_type(cl_type):
+    """Assigns color"""
     amino_property_table = pd.DataFrame.from_dict(
         {
             'amino': ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
@@ -12,9 +22,10 @@ def color_type(cl_type):
                       'U', 'V', 'W', 'X', 'Y', 'Z', '-', '.', '*'],
             'phobicity': [20, 200, 80, 100, 100, 20, 20, 80, 20, 200, 100, 20,
                           80, 80, 20, 200, 80, 100, 80, 80,
-                          200, 20, 80, 200, 80, 200, 231, 255, 255],  # Include Polar, 1: 20
-                                                        # Hydrophobic 2: 80
-                                                        # and charged 3: 100, 4: 200
+                          200, 20, 80, 200, 80, 200, 231, 255, 255],
+            # Include Polar, 1: 20
+            # Hydrophobic 2: 80
+            # and charged 3: 100, 4: 200
             'size': [100, 200, 100, 200, 200, 200, 100, 200, 200, 200,
                      200, 200, 200, 200, 200, 200, 200, 200, 100, 200,
                      200, 200, 200, 200, 200, 200, 231, 255, 255],
@@ -25,12 +36,13 @@ def color_type(cl_type):
     )
     colors = {}
     # print(amino_property_table)
-    for i, row in amino_property_table[['amino', cl_type]].iterrows():
+    for _, row in amino_property_table[['amino', cl_type]].iterrows():
         colors[row['amino']] = row[cl_type]
     return colors
 
 
 def color_pairs(curses, mode):
+    """Forground and background color paires"""
     # Modes are normal, seize and phobicity
     alphabet_colors = color_type(mode)
     color_pair = {}
